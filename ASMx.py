@@ -26,7 +26,7 @@ def add_bounded_edges(matrix, boundary_value, row_boundary_thickness, col_bounda
 
     return new_matrix
 
-def generate_weight_matrices(smoothing_time_window, smoothing_space_window, delta=0.12, dx=0.02, dt=4, c_cong=13, c_free=-45, tau=20, plot=True):
+def generate_weight_matrices(smoothing_time_window, smoothing_space_window, delta=0.10, dx=0.02, dt=4, c_cong=12, c_free=-45, tau=9, plot=True):
     """
     Generate weight matrices for congestion and free flow conditions.
     @param delta: range of spatial smoothing in x.
@@ -106,7 +106,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-def smooth_speed_field(raw_data, cong_weight_matrix, free_weight_matrix, vthr = 37.29, vdelta = 12.43):
+def smooth_speed_field(raw_data, cong_weight_matrix, free_weight_matrix, vthr = 40, vdelta = 10):
     half_x_mat = int((cong_weight_matrix.shape[1] - 1) / 2)
     half_t_mat = int((cong_weight_matrix.shape[0] - 1) / 2)
     n_time, n_space = raw_data.shape
@@ -188,7 +188,7 @@ def matrix_to_coordinates(matrix):
             coordinates.append([i, j, matrix[i][j]])
     return coordinates
 
-def asm_data_w_x(processed_data, smoothing_time_window, smoothing_space_window, delta, tau, c_cong=12, c_free=-60, dx=0.02, dt=4, data_columns=['speed', 'occ', 'volume']):
+def asm_data_w_x(processed_data, smoothing_time_window, smoothing_space_window, delta, tau, c_cong=12, c_free=-45, dx=0.02, dt=4, data_columns=['speed', 'occ', 'volume']):
     t = smoothing_time_window
     x = smoothing_space_window
     x_mat = int(x / dx) * 2 + 1
@@ -272,7 +272,7 @@ def asm_data_w_x(processed_data, smoothing_time_window, smoothing_space_window, 
                         else:
                             v_free = np.sum(neighbour_fillna * free_weight_matrix) / N_free
                         if N_cong != 0 and N_free != 0:
-                            w = 0.5 * (1 + np.tanh((37.29 - min(v_cong, v_free)) / 12.43))
+                            w = 0.5 * (1 + np.tanh((40 - min(v_cong, v_free)) / 10))
                             v = w * v_cong + (1 - w) * v_free
                         elif N_cong == 0:
                             v = v_free
@@ -331,7 +331,7 @@ def asm_data_w_x(processed_data, smoothing_time_window, smoothing_space_window, 
                             v_free = np.sum(neighbour_fillna * free_weight_matrix) / N_free
                             v_free_speed = np.sum(neighbour_fillna_speed * free_weight_matrix) / N_free_speed
                         if N_cong != 0 and N_free != 0:
-                            w = 0.5 * (1 + np.tanh((37.29 - min(v_cong_speed, v_free_speed)) / 12.43))
+                            w = 0.5 * (1 + np.tanh((40 - min(v_cong_speed, v_free_speed)) / 10))
                             v = w * v_cong + (1 - w) * v_free
                         elif N_cong == 0:
                             v = v_free
