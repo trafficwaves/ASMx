@@ -11,8 +11,8 @@ def fill_space_time_matrix(raw_data, dx = 0.1, dt = 10, lane = 1, data_type = 's
     data = raw_data[['milemarker', 'time_unix_fix', f'lane{lane}_{data_type}']].copy()
     min_milemarker = round(data['milemarker'].min(),0)
     max_milemarker = round(data['milemarker'].max(),0)
-    min_time_unix = data['time_unix_fix'].min()
-    max_time_unix = data['time_unix_fix'].max() + 30
+    min_time_unix = int(data['time_unix_fix'].min())
+    max_time_unix = int(data['time_unix_fix'].max()) + 30
     milemarkers = np.round(np.arange(min_milemarker, max_milemarker, dx), 2)
     time_range_unix = np.round(np.arange(min_time_unix, max_time_unix, dt), 2)
     matrix = pd.DataFrame(index=time_range_unix, columns=milemarkers)
@@ -32,9 +32,9 @@ class AdaptiveSmoothing(nn.Module):
                  dt: float,
                  init_delta: float = 0.10, # mile
                  init_tau: float = 9.0, # seconds
-                 init_c_cong: float = 12.0,
-                 init_c_free: float = -45.0,
-                 init_v_thr: float = 40.0,
+                 init_c_cong: float = -12.0,
+                 init_c_free: float = 45.0,
+                 init_v_thr: float = 30.0,
                  init_v_delta: float = 10.0):
         super().__init__()
         self.half_t = int(smoothing_time_window / dt)
@@ -44,6 +44,7 @@ class AdaptiveSmoothing(nn.Module):
 
         t_offs = torch.arange(-self.half_t, self.half_t + 1) * dt
         x_offs = torch.arange(-self.half_x, self.half_x + 1) * dx
+        print(f"t_offs: {t_offs}, x_offs: {x_offs}")
         T, X = torch.meshgrid(t_offs, x_offs, indexing='ij')
         self.register_buffer('T_offsets', T.float())
         self.register_buffer('X_offsets', X.float())
@@ -63,6 +64,9 @@ class AdaptiveSmoothing(nn.Module):
             raw_data = raw_data.unsqueeze(1)
 
         mask = (~raw_data.isnan()).float()
+        plt.imshow(mask[0, 0], cmap='gray', interpolation='nearest', origin='lower')
+        plt.savefig('figures/mask.png', dpi=300, bbox_inches='tight')
+        plt.close()
         data = torch.nan_to_num(raw_data, nan=0.0)
 
         c_cong_s = self.c_cong / 3600.0
@@ -78,6 +82,7 @@ class AdaptiveSmoothing(nn.Module):
         k_free = k_free.unsqueeze(0).unsqueeze(0)
 
         pad = (self.half_x, self.half_x, self.half_t, self.half_t)
+        print(f"pad: {pad}")
         Dp = F.pad(data, pad, value=0.0)
         Mp = F.pad(mask, pad, value=0.0)
 
@@ -86,50 +91,63 @@ class AdaptiveSmoothing(nn.Module):
         sum_free = F.conv2d(Dp, k_free)
         N_free   = F.conv2d(Mp, k_free)
 
-        v_cong = sum_cong / (N_cong + 1e-6)
-        v_free = sum_free / (N_free + 1e-6)
+        v_cong = sum_cong / (N_cong)
+        v_free = sum_free / (N_free)
 
         v_min = torch.min(v_cong, v_free)
         w = 0.5 * (1 + torch.tanh((self.v_thr - v_min) / self.v_delta))
         v = w * v_cong + (1 - w) * v_free
 
+        valid_cong = (N_cong >=0).float()
+        valid_free = (N_free >=0).float()
+        # if no cong data → use free; if no free data → use cong
+        v = valid_cong*valid_free*v + (1-valid_cong)*v_free + (1-valid_free)*v_cong
         return v.squeeze(1)
 
 
 def main():
     # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     device = torch.device("cpu")
-    raw_data = pd.read_csv('data/2023-10-26.csv')
-    speed = fill_space_time_matrix(raw_data, dx = 0.1, dt = 30, lane = 1, data_type = 'speed')
-    output = speed.T.values.copy()
-    # make output to be float32
-    output = output.astype(np.float32)
-    np.save('data/speed.npy', output)
-
+    # # raw_data = pd.read_csv('data/2023-10-26.csv')
+    # raw_data = pd.read_csv('data/2025-04-09.csv', low_memory=False)
+    # speed = fill_space_time_matrix(raw_data, dx = 0.1, dt = 30, lane = 2, data_type = 'speed')
+    # output = speed.T.values.copy()
+    # # make output to be float32
+    # output = output.astype(np.float32)
+    # np.save('data/speed.npy', output)
+    speed = np.load('data/speed.npy')
+    # make the data less than 0 to be nan
+    speed[speed < 0] = np.nan
+    # get the size of the speed
+    time_size, space_size = speed.shape
+    # print(f"Time size: {time_size}, Space size: {space_size}")
     # Hyperparameters
-    smoothing_time_window = 600.0  # seconds
-    smoothing_space_window = 2  # same units as dx
     dx = 0.1                   # distance per cell
     dt = 30.0                    # time per cell
-
+    smoothing_time_window = time_size * dt  # seconds
+    smoothing_space_window = space_size * dx  # same units as dx
+    print(f"Smoothing time window: {smoothing_time_window}, Smoothing space window: {smoothing_space_window}")
     # Instantiate the model
     model = AdaptiveSmoothing(smoothing_time_window,
-                              smoothing_space_window, dx, dt).to(device)
+                              smoothing_space_window,
+                              dx, dt).to(device)
     model.eval()
-    speed = np.load('data/speed.npy')
     plt.figure(figsize=(12, 6))
     plt.rcParams.update({'font.size': 14, 'font.family': 'serif'})
-    plt.imshow(speed, cmap='hot', interpolation='nearest', origin='lower',vmin=0, vmax=80, aspect='auto')
+    plt.imshow(speed, cmap='RdYlGn', interpolation='nearest', origin='lower',vmin=0, vmax=80, aspect='auto')
     plt.colorbar(label='Speed')
     plt.title('Raw Data')
     plt.tight_layout()
-    plt.gca().invert_yaxis()
+    # plt.gca().invert_yaxis()
     plt.savefig('figures/pre_speed.pdf', dpi=300, bbox_inches='tight')
     plt.close()
     raw = torch.from_numpy(speed).to(device)
+    start_time = time.time()
     with torch.no_grad():
         smoothed = model(raw)
     sm = smoothed[0].cpu().numpy()
+    end_time = time.time()
+    print(f"Execution time: {end_time - start_time:.2f} seconds")
     # see if the smoothed data is nan
     if np.isnan(sm).any():
         print("Smoothed data contains NaN values.")
@@ -138,17 +156,15 @@ def main():
     plt.figure(figsize=(12, 6))
     # make the font to be elegant
     plt.rcParams.update({'font.size': 14, 'font.family': 'serif'})
-    plt.imshow(sm, cmap='hot', interpolation='nearest', origin='lower',vmin=0, vmax=80, aspect='auto')
+    plt.imshow(sm, cmap='RdYlGn', interpolation='nearest', origin='lower',vmin=0, vmax=80, aspect='auto')
     plt.colorbar(label='Speed')
     plt.title('ASM')
     # reverse the y-axis
-    plt.gca().invert_yaxis()
+    # plt.gca().invert_yaxis()
     plt.tight_layout()
     plt.savefig('figures/smoothed_speed.pdf', dpi=300, bbox_inches='tight')
     plt.close()
 
 if __name__ == "__main__":
-    start_time = time.time()
     main()
-    end_time = time.time()
-    print(f"Execution time: {end_time - start_time:.2f} seconds")
+    
