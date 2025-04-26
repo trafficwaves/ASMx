@@ -150,6 +150,7 @@ def main():
     # make the data less than 0 to be nan
     speed[speed < 0] = np.nan
     # get the size of the speed
+    print('speed shape:', speed.shape)
     time_size, space_size = speed.shape
     # Hyperparameters
     dx = 0.1                   # distance per cell
