@@ -6,6 +6,64 @@ import numpy as np
 import pandas as pd
 import time
 
+def fft_four_convs(Dp, Mp, k_cong, k_free):
+    """
+    Compute
+        sum_cong = conv2d(Dp, k_cong)
+        sum_free = conv2d(Dp, k_free)
+        N_cong   = conv2d(Mp, k_cong)
+        N_free   = conv2d(Mp, k_free)
+    all via FFT.
+    
+    Dp, Mp:   (B, C, H, W)
+    k_cong,:  (F, C, Kh, Kw)
+    k_free:   (F, C, Kh, Kw)  (here F=1, but generalizable)
+    returns:  sum_cong, N_cong, sum_free, N_free each of shape (B, F, H-Kh+1, W-Kw+1)
+    """
+    B, C, H, W        = Dp.shape
+    F, _, Kh, Kw      = k_cong.shape
+    Fh, Fw            = H + Kh - 1, W + Kw - 1
+    device, dtype     = Dp.device, Dp.dtype
+
+    # ——— pad inputs ———
+    Dp_pad = torch.zeros(B, C, Fh, Fw, device=device, dtype=dtype)
+    Mp_pad = torch.zeros(B, C, Fh, Fw, device=device, dtype=dtype)
+    Dp_pad[..., :H, :W] = Dp
+    Mp_pad[..., :H, :W] = Mp
+
+    # ——— pad kernels ———
+    k1_pad = torch.zeros(F, C, Fh, Fw, device=device, dtype=dtype)
+    k2_pad = torch.zeros(F, C, Fh, Fw, device=device, dtype=dtype)
+    k1_pad[..., :Kh, :Kw] = k_cong
+    k2_pad[..., :Kh, :Kw] = k_free
+
+    # ——— FFT both inputs and kernels ———
+    # real→complex FFT over the last two dims
+    Df  = torch.fft.rfftn(Dp_pad, dim=(-2, -1), s=(Fh, Fw))
+    Mf  = torch.fft.rfftn(Mp_pad, dim=(-2, -1), s=(Fh, Fw))
+    Kf1 = torch.fft.rfftn(k1_pad, dim=(-2, -1), s=(Fh, Fw))
+    Kf2 = torch.fft.rfftn(k2_pad, dim=(-2, -1), s=(Fh, Fw))
+
+    # ——— pointwise multiply in freq domain ———
+    Y1 = Df * Kf1    # for sum_cong
+    Y2 = Df * Kf2    # for sum_free
+    Z1 = Mf * Kf1    # for N_cong
+    Z2 = Mf * Kf2    # for N_free
+
+    # ——— inverse FFT back to real ———
+    y1 = torch.fft.irfftn(Y1, dim=(-2, -1), s=(Fh, Fw))
+    y2 = torch.fft.irfftn(Y2, dim=(-2, -1), s=(Fh, Fw))
+    z1 = torch.fft.irfftn(Z1, dim=(-2, -1), s=(Fh, Fw))
+    z2 = torch.fft.irfftn(Z2, dim=(-2, -1), s=(Fh, Fw))
+
+    # ——— crop “valid” region ———
+    oh, ow = H - Kh + 1, W - Kw + 1
+    sum_cong = y1[..., Kh-1:Kh-1+oh, Kw-1:Kw-1+ow]
+    sum_free = y2[..., Kh-1:Kh-1+oh, Kw-1:Kw-1+ow]
+    N_cong   = z1[..., Kh-1:Kh-1+oh, Kw-1:Kw-1+ow]
+    N_free   = z2[..., Kh-1:Kh-1+oh, Kw-1:Kw-1+ow]
+
+    return sum_cong, N_cong, sum_free, N_free
 
 def fill_space_time_matrix(raw_data, dx = 0.1, dt = 10, lane = 1, data_type = 'speed'):
     data = raw_data[['milemarker', 'time_unix_fix', f'lane{lane}_{data_type}']].copy()
@@ -86,10 +144,11 @@ class AdaptiveSmoothing(nn.Module):
         Dp = F.pad(data, pad, value=0.0)
         Mp = F.pad(mask, pad, value=0.0)
 
-        sum_cong = F.conv2d(Dp, k_cong)
-        N_cong   = F.conv2d(Mp, k_cong)
-        sum_free = F.conv2d(Dp, k_free)
-        N_free   = F.conv2d(Mp, k_free)
+        # sum_cong = F.conv2d(Dp, k_cong)
+        # N_cong   = F.conv2d(Mp, k_cong)
+        # sum_free = F.conv2d(Dp, k_free)
+        # N_free   = F.conv2d(Mp, k_free)
+        sum_cong, N_cong, sum_free, N_free = fft_four_convs(Dp, Mp, k_cong, k_free)
 
         v_cong = sum_cong / (N_cong)
         v_free = sum_free / (N_free)
