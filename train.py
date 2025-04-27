@@ -4,19 +4,58 @@ import torch.nn.functional as F
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from ASM_utils import AdaptiveSmoothing, fft_four_convs 
+from ASM_utils import AdaptiveSmoothing
+import warnings 
+warnings.filterwarnings("ignore")
+torch.set_float32_matmul_precision('medium')
 
 def rmse(pred, target, mask=None):
-    """Compute RMSE; if mask is provided, only over mask==1. 
-    Additionally, only consider target values < 15."""
-    valid = (target < 80).float()
-    if mask is not None:
-        valid = valid * mask
+    """Compute weighted RMSE; if mask is provided, only over mask==1.
+    Congested (target<15) weighted 4x, free (>=15) weighted 1x."""
+    congest = (target < 30).float()
+    free = (target >= 30).float()
+    weights = 4.0 * congest + 1.0 * free
+    valid = weights if mask is None else weights * mask
     diff2 = (pred - target) ** 2 * valid
     if valid.sum() == 0:
         return torch.tensor(0.0, device=pred.device)
-    mse = diff2.sum() / valid.sum()
-    return mse
+    return torch.sqrt(diff2.sum() / valid.sum())
+
+
+def wasserstein_distance(pred, target, mask=None):
+    """Compute empirical 1D Wasserstein distance between pred and target."""
+    # Flatten tensors
+    p = pred.view(-1)
+    t = target.view(-1)
+    if mask is not None:
+        m = mask.view(-1) > 0
+        p = p[m]
+        t = t[m]
+    if p.numel() == 0 or t.numel() == 0:
+        return torch.tensor(0.0, device=pred.device)
+    # Sort and compute mean absolute difference
+    p_sorted, _ = torch.sort(p)
+    t_sorted, _ = torch.sort(t)
+    n = min(p_sorted.numel(), t_sorted.numel())
+    return torch.mean(torch.abs(p_sorted[:n] - t_sorted[:n]))
+
+
+def combined_loss(pred, target, mask=None, alpha=1.0):
+    """
+    Combined loss = alpha * RMSE + (1-alpha) * Wasserstein Distance.
+    Use alpha in [0,1] to balance.
+    """
+    l1 = rmse(pred, target, mask)
+    l2 = wasserstein_distance(pred, target, mask)
+    return alpha * l1 + (1 - alpha) * l2
+
+def quantize(tensor: torch.Tensor, decimals: int = 2):
+    """
+    In‐place quantization of `tensor` to the given number of decimals.
+    E.g. decimals=2 → nearest 0.01.
+    """
+    scale = 10.0 ** decimals
+    tensor.data.mul_(scale).round_().div_(scale)
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -24,14 +63,15 @@ def main():
     # Load dates
     dates = pd.read_csv('dates.csv').date.tolist()
     train_dates = dates[0:1]
-    val_date = dates[1]
+    val_date = dates[0]
 
     # Load all training data
     train_raws, train_gts = [], []
     for date in train_dates:
         gt_np = np.load(f'data/processed_data/motion/lane1/{date}.npy')
         sp_np = np.load(f'data/processed_data/rds/lane1/{date}.npy')
-        
+        # sp_np < 0.0 → NaN
+        sp_np[sp_np < 0.0] = np.nan
         raw = torch.from_numpy(sp_np).float().unsqueeze(0).unsqueeze(0)  # (1,1,T,X)
         gt = torch.from_numpy(gt_np).float().unsqueeze(0).unsqueeze(0)    # (1,1,T,X)
 
@@ -45,7 +85,7 @@ def main():
     # Validation data
     val_gt_np = np.load(f'data/processed_data/motion/lane1/{val_date}.npy')
     val_sp_np = np.load(f'data/processed_data/rds/lane1/{val_date}.npy')
-
+    val_sp_np[val_sp_np < 0.0] = np.nan
     val_raw = torch.from_numpy(val_sp_np).float().unsqueeze(0).unsqueeze(0).to(device)
     val_gt = torch.from_numpy(val_gt_np).float().unsqueeze(0).unsqueeze(0).to(device)
 
@@ -64,10 +104,11 @@ def main():
 
     # Model & optimizer
     model = AdaptiveSmoothing(kernel_time_window, kernel_space_window, dx, dt,
-                              init_tau= 30.0, init_delta= 1.0, 
-                              init_c_cong= 12.0, init_c_free= -60.0).to(device)
+                              init_tau= 10.0, init_delta= 1.0, 
+                              init_c_cong= 15.0, init_c_free= -80.0,
+                              init_v_thr= 50.0, init_v_delta= 40.0).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-2, weight_decay=1e-5)
-    num_epochs = 1000
+    num_epochs = 500
 
     best_val_rmse = float('inf')
     best_model_path = 'best_model.pth'
@@ -78,7 +119,7 @@ def main():
         optimizer.zero_grad()
 
         smoothed = model(train_raw)
-        loss = rmse(smoothed, train_gt, train_mask)
+        loss = combined_loss(smoothed, train_gt, train_mask)
 
         loss.backward()
         optimizer.step()
@@ -86,8 +127,21 @@ def main():
         # Validation
         model.eval()
         with torch.no_grad():
+            model.tau.clamp_(min=1.0, max=30.0)
+            model.delta.clamp_(min=0.05, max=0.50)
+            model.c_cong.clamp_(min=11.0, max=12.0)
+            model.c_free.clamp_(max= -60.0, min= -40.0)
+            model.v_thr.clamp_(min=20.0, max=60.0)
+            model.v_delta.clamp_(min=5.0, max=10.0)
+            for param in (
+                    model.tau, model.delta,
+                    model.c_cong, model.c_free,
+                    model.v_thr, model.v_delta
+                ):
+                    quantize(param, decimals=2)
+
             val_pred = model(val_raw)
-            val_rmse = rmse(val_pred, val_gt, val_mask)
+            val_rmse = combined_loss(val_pred, val_gt, val_mask)
 
         if val_rmse.item() < best_val_rmse:
             best_val_rmse = val_rmse.item()
@@ -111,7 +165,7 @@ def main():
     model.load_state_dict(torch.load(best_model_path))
     for name, param in model.named_parameters():
         if param.requires_grad:
-            print(f"{name}: {param.data}")
+            print(f"{name}: {param.data.round(decimals=2)}")
 
      # run the results for the validation set
      # load the best model
@@ -120,8 +174,10 @@ def main():
     with torch.no_grad():
         smoothed = model(train_raw)
     sm = smoothed[0].cpu().numpy()
+    # get only the first 200 rows and 200 columns
+    # sm = sm[:200, :200]
     # visualize the results
-    plt.figure(figsize=(12, 6))
+    plt.figure(figsize=(24, 6))
     plt.rcParams.update({'font.size': 14, 'font.family': 'serif'})
     plt.imshow(sm, cmap='RdYlGn', interpolation='nearest', origin='lower',vmin=0, vmax=80, aspect='auto')
     plt.colorbar(label='Speed')

@@ -191,7 +191,7 @@ def main():
     # reverse the y-axis
     # plt.gca().invert_yaxis()
     plt.tight_layout()
-    plt.savefig('figures/smoothed_speed.pdf', dpi=300, bbox_inches='tight')
+    plt.saefig('figures/smoothed_speed.pdf', dpi=300, bbox_inches='tight')
     plt.close()
 
 if __name__ == "__main__":
