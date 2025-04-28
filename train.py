@@ -14,12 +14,12 @@ def rmse(pred, target, mask=None):
     Congested (target<15) weighted 4x, free (>=15) weighted 1x."""
     congest = (target < 30).float()
     free = (target >= 30).float()
-    weights = 100.0 * congest + 1.0 * free
+    weights = 4.0 * congest + 1.0 * free
     valid = weights if mask is None else weights * mask
     diff2 = (pred - target) ** 2 * valid
     if valid.sum() == 0:
         return torch.tensor(0.0, device=pred.device)
-    return torch.sqrt(diff2.sum() / valid.sum())
+    return torch.sqrt(diff2.sum())
 
 
 def wasserstein_distance(pred, target, mask=None):
@@ -105,13 +105,13 @@ def main():
     print('kernel_space_window:', kernel_space_window)
     # Model & optimizer
     model = AdaptiveSmoothing(kernel_time_window, kernel_space_window, dx, dt,
-                              init_tau= 10.0, init_delta= 0.10, 
-                              init_c_cong= 12.0, init_c_free= -45.0,
+                              init_tau= 30.0, init_delta= 1.0, 
+                              init_c_cong= 20.0, init_c_free= -45.0,
                               init_v_thr= 50.0, init_v_delta= 10.0).to(device)
     optimizer = torch.optim.Adam(model.parameters(), 
                                  lr=1e-2, 
                                  weight_decay=1e-5)
-    num_epochs = 1
+    num_epochs = 4000
 
     best_val_rmse = float('inf')
     best_model_path = 'best_model.pth'
@@ -138,7 +138,7 @@ def main():
             # model.v_delta.clamp_(min=5.0, max=10.0)
             for param in (
                     model.tau, model.delta,
-                    # model.c_cong, 
+                    model.c_cong, 
                     model.c_free,
                     model.v_thr, model.v_delta
                 ):
@@ -153,6 +153,10 @@ def main():
 
         if epoch % 10 == 0 or epoch == 1:
             print(f"Epoch {epoch:3d} — Train RMSE: {loss.item():.4f} — Val RMSE: {val_rmse.item():.4f}")
+        if epoch % 100 == 0 or epoch == 1:
+            print(f"tau: {model.tau.item():.2f}, delta: {model.delta.item():.2f}, "
+                  f"c_cong: {model.c_cong.item():.2f}, c_free: {model.c_free.item():.2f}, "
+                  f"v_thr: {model.v_thr.item():.2f}, v_delta: {model.v_delta.item():.2f}")
     # draw the training and validation RMSE
     plt.plot(range(1, num_epochs+1), [loss.item() for _ in range(num_epochs)], label='Train RMSE')
     plt.plot(range(1, num_epochs+1), [val_rmse.item() for _ in range(num_epochs)], label='Validation RMSE')
@@ -169,8 +173,7 @@ def main():
     model.load_state_dict(torch.load(best_model_path))
     for name, param in model.named_parameters():
         if param.requires_grad:
-            print(f"{name}: {param.data.round(decimals=2)}")
-
+            print(f"{name}: {param.data:.2f}")
      # run the results for the validation set
      # load the best model
     model.load_state_dict(torch.load(best_model_path))

@@ -100,8 +100,7 @@ class AdaptiveSmoothing(nn.Module):
 
         self.delta   = nn.Parameter(torch.tensor(init_delta))
         self.tau     = nn.Parameter(torch.tensor(init_tau))
-        # self.c_cong  = nn.Parameter(torch.tensor(init_c_cong))
-        self.c_cong  = init_c_cong
+        self.c_cong  = nn.Parameter(torch.tensor(init_c_cong))
         self.c_free  = nn.Parameter(torch.tensor(init_c_free))
         self.v_thr   = nn.Parameter(torch.tensor(init_v_thr))
         self.v_delta = nn.Parameter(torch.tensor(init_v_delta))
@@ -118,13 +117,13 @@ class AdaptiveSmoothing(nn.Module):
 
         c_cong_s = self.c_cong / 3600.0 # convert from mph to miles per second
         c_free_s = self.c_free / 3600.0
-        print('T_offsize:', self.T_offsets.size())
+        # print('T_offsize:', self.T_offsets.size())
         t_cong = self.T_offsets - self.X_offsets / c_cong_s
         t_free = self.T_offsets - self.X_offsets / c_free_s
 
         k_cong = torch.exp(-(t_cong.abs() / self.tau + self.X_offsets.abs() / self.delta))
         # size of k_cong
-        print('k_cong size:', k_cong.size())
+        # print('k_cong size:', k_cong.size())
         k_free = torch.exp(-(t_free.abs() / self.tau + self.X_offsets.abs() / self.delta))
 
         k_cong = k_cong.unsqueeze(0).unsqueeze(0)  # (1,1,Kt,Kx)
@@ -133,8 +132,8 @@ class AdaptiveSmoothing(nn.Module):
         pad = (self.size_t, self.size_t, self.size_x, self.size_x) # to deal with the edge effects
         Dp = F.pad(data, pad, value=0.0)
         # print data size
-        print('Data size:', data.size())
-        print('Dp size:', Dp.size())
+        # print('Data size:', data.size())
+        # print('Dp size:', Dp.size())
         Mp = F.pad(mask, pad, value=0.0)
 
         # sum_cong = F.conv2d(Dp, k_cong)
@@ -159,5 +158,5 @@ class AdaptiveSmoothing(nn.Module):
             print("Warning! NaN detected in output")
             print(N_cong)
         # print size of v   
-        print('v size:', v.size())
+        # print('v size:', v.size())
         return v.squeeze(1)
