@@ -14,7 +14,7 @@ def rmse(pred, target, mask=None):
     Congested (target<15) weighted 4x, free (>=15) weighted 1x."""
     congest = (target < 30).float()
     free = (target >= 30).float()
-    weights = 4.0 * congest + 1.0 * free
+    weights = 100.0 * congest + 1.0 * free
     valid = weights if mask is None else weights * mask
     diff2 = (pred - target) ** 2 * valid
     if valid.sum() == 0:
@@ -99,16 +99,19 @@ def main():
     # Hyperparameters
     dx = 0.02
     dt = 4.0
-    kernel_time_window = val_sp_np.shape[0] * dt
-    kernel_space_window = val_sp_np.shape[1] * dx
-
+    kernel_time_window = val_sp_np.shape[1] * dt
+    kernel_space_window = val_sp_np.shape[0] * dx
+    print('kernel_time_window:', kernel_time_window)
+    print('kernel_space_window:', kernel_space_window)
     # Model & optimizer
     model = AdaptiveSmoothing(kernel_time_window, kernel_space_window, dx, dt,
-                              init_tau= 10.0, init_delta= 1.0, 
-                              init_c_cong= 15.0, init_c_free= -80.0,
-                              init_v_thr= 50.0, init_v_delta= 40.0).to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-2, weight_decay=1e-5)
-    num_epochs = 500
+                              init_tau= 10.0, init_delta= 0.10, 
+                              init_c_cong= 12.0, init_c_free= -45.0,
+                              init_v_thr= 50.0, init_v_delta= 10.0).to(device)
+    optimizer = torch.optim.Adam(model.parameters(), 
+                                 lr=1e-2, 
+                                 weight_decay=1e-5)
+    num_epochs = 1
 
     best_val_rmse = float('inf')
     best_model_path = 'best_model.pth'
@@ -127,15 +130,16 @@ def main():
         # Validation
         model.eval()
         with torch.no_grad():
-            model.tau.clamp_(min=1.0, max=30.0)
-            model.delta.clamp_(min=0.05, max=0.50)
-            model.c_cong.clamp_(min=11.0, max=12.0)
-            model.c_free.clamp_(max= -60.0, min= -40.0)
-            model.v_thr.clamp_(min=20.0, max=60.0)
-            model.v_delta.clamp_(min=5.0, max=10.0)
+            # model.tau.clamp_(min=1.0, max=30.0)
+            # model.delta.clamp_(min=0.05, max=0.50)
+            # model.c_cong.clamp_(min=11.0, max=12.0)
+            # model.c_free.clamp_(max= -60.0, min= -40.0)
+            # model.v_thr.clamp_(min=20.0, max=60.0)
+            # model.v_delta.clamp_(min=5.0, max=10.0)
             for param in (
                     model.tau, model.delta,
-                    model.c_cong, model.c_free,
+                    # model.c_cong, 
+                    model.c_free,
                     model.v_thr, model.v_delta
                 ):
                     quantize(param, decimals=2)
@@ -177,7 +181,7 @@ def main():
     # get only the first 200 rows and 200 columns
     # sm = sm[:200, :200]
     # visualize the results
-    plt.figure(figsize=(24, 6))
+    plt.figure(figsize=(12, 6))
     plt.rcParams.update({'font.size': 14, 'font.family': 'serif'})
     plt.imshow(sm, cmap='RdYlGn', interpolation='nearest', origin='lower',vmin=0, vmax=80, aspect='auto')
     plt.colorbar(label='Speed')
