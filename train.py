@@ -111,7 +111,7 @@ def main():
     optimizer = torch.optim.Adam(model.parameters(), 
                                  lr=1e-2, 
                                  weight_decay=1e-5)
-    num_epochs = 4000
+    num_epochs = 200
 
     best_val_rmse = float('inf')
     best_model_path = 'best_model.pth'
@@ -181,6 +181,7 @@ def main():
     with torch.no_grad():
         smoothed = model(train_raw)
     sm = smoothed[0].cpu().numpy()
+    print('sm shape:', sm.shape)
     # get only the first 200 rows and 200 columns
     # sm = sm[:200, :200]
     # visualize the results
