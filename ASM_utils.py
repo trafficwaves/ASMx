@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 
-def fft_four_convs(Dp, Mp, k_cong, k_free, eps=0, use_ortho=True):
+def fft_four_convs(Dp, Mp, k_cong, k_free, eps=1e-6, use_ortho=True):
     """
     Compute via FFT:
         sum_cong = conv2d(Dp, k_cong)

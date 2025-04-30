@@ -29,7 +29,7 @@ for lane in range(1, 5):
     for date in dates:
         print('date:', date)
         raw_data = pd.read_csv(f'data/raw_data/rds/{date}.csv', low_memory=False)
-        speed = fill_space_time_matrix(raw_data, dx = 0.02, dt = 4, lane = 1, data_type = 'speed')
+        speed = fill_space_time_matrix(raw_data, dx = 0.02, dt = 4, lane = lane, data_type = 'speed')
         output = speed.T.values.copy()
         output = output.astype(np.float32)
         print(f'lane {lane}, {date} output shape: {output.shape}')
@@ -39,10 +39,14 @@ for lane in range(1, 5):
         np.save(f'{output_dir}/{date}.npy', output)
         # num of nan
         # print(f'lane {lane}, {date} num of nan: {np.isnan(output).sum()}')
-        plt.imshow(output, cmap='hot', interpolation='nearest',aspect='auto')
-        plt.colorbar()
-        plt.title(f'Lane {lane} Speed Matrix on {date}')
-        plt.xlabel('Space')
-        plt.ylabel('Time')
-        plt.savefig(f'demo_raw_{lane}_{date}.png')
-        plt.close()
+        # plt.imshow(output, cmap='hot', interpolation='nearest',aspect='auto')
+        # plt.colorbar()
+        # plt.title(f'Lane {lane} Speed Matrix on {date}')
+        # plt.xlabel('Space')
+        # plt.ylabel('Time')
+        # plt.savefig(f'demo_raw_{lane}_{date}.png')
+        # plt.close()
+
+
+
+

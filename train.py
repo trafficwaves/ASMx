@@ -3,23 +3,60 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 import pandas as pd
+import json
 import matplotlib.pyplot as plt
 from ASM_utils import AdaptiveSmoothing
 import warnings 
+import os
 warnings.filterwarnings("ignore")
 torch.set_float32_matmul_precision('medium')
 
 def rmse(pred, target, mask=None):
-    """Compute weighted RMSE; if mask is provided, only over mask==1.
-    Congested (target<15) weighted 4x, free (>=15) weighted 1x."""
-    congest = (target < 30).float()
-    free = (target >= 30).float()
-    weights = 4.0 * congest + 1.0 * free
-    valid = weights if mask is None else weights * mask
-    diff2 = (pred - target) ** 2 * valid
-    if valid.sum() == 0:
-        return torch.tensor(0.0, device=pred.device)
-    return torch.sqrt(diff2.sum())
+    """Compute RMSE; if mask is provided, only over mask==1.
+    """
+    # Compute RMSE
+    diff = (pred - target) ** 2
+    if mask is not None:
+        diff = diff * mask
+    rmse_value = torch.sqrt(diff.mean())
+    return rmse_value
+
+def weighted_rmse(pred, target, mask=None, threshold=15.0, high_weight=10.0):
+    """
+    Compute a masked, weighted RMSE.
+
+    Args:
+        pred (Tensor): predicted values.
+        target (Tensor): ground-truth values.
+        mask (Tensor, optional): same shape as pred/target, binary (0/1) where 1=keep, 0=ignore.
+        threshold (float): targets below this get up-weighted.
+        high_weight (float): multiplier applied to any sample with target < threshold.
+
+    Returns:
+        Tensor: scalar RMSE.
+    """
+    # squared error
+    se = (pred - target) ** 2
+
+    # base weight = 1 everywhere (or 0 where mask==0)
+    if mask is not None:
+        weight = mask.to(dtype=se.dtype)
+    else:
+        weight = torch.ones_like(se)
+
+    # up-weight low-target samples
+    low_target = (target < threshold).to(dtype=se.dtype)
+    weight = weight * (1 + (high_weight - 1) * low_target)
+
+    # compute weighted mean squared error
+    # avoid division by zero if all weights are zero
+    total_weight = weight.sum()
+    if total_weight == 0:
+        return torch.tensor(0., dtype=se.dtype, device=se.device)
+
+    weighted_mse = (se * weight).sum() / total_weight
+
+    return torch.sqrt(weighted_mse)
 
 
 def wasserstein_distance(pred, target, mask=None):
@@ -45,7 +82,7 @@ def combined_loss(pred, target, mask=None, alpha=1.0):
     Combined loss = alpha * RMSE + (1-alpha) * Wasserstein Distance.
     Use alpha in [0,1] to balance.
     """
-    l1 = rmse(pred, target, mask)
+    l1 = weighted_rmse(pred, target, mask)
     l2 = wasserstein_distance(pred, target, mask)
     return alpha * l1 + (1 - alpha) * l2
 
@@ -57,19 +94,19 @@ def quantize(tensor: torch.Tensor, decimals: int = 2):
     scale = 10.0 ** decimals
     tensor.data.mul_(scale).round_().div_(scale)
 
-def main():
+def calib(lane):
+    # use the runid based on current time
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
     # Load dates
     dates = pd.read_csv('dates.csv').date.tolist()
-    train_dates = dates[0:1]
-    val_date = dates[0]
+    train_dates = dates[1:2]
+    val_date = dates[1]
 
     # Load all training data
     train_raws, train_gts = [], []
     for date in train_dates:
-        gt_np = np.load(f'data/processed_data/motion/lane1/{date}.npy')
-        sp_np = np.load(f'data/processed_data/rds/lane1/{date}.npy')
+        gt_np = np.load(f'data/processed_data/motion/lane{lane}/{date}.npy')
+        sp_np = np.load(f'data/processed_data/rds/lane{lane}/{date}.npy')
         # sp_np < 0.0 → NaN
         sp_np[sp_np < 0.0] = np.nan
         raw = torch.from_numpy(sp_np).float().unsqueeze(0).unsqueeze(0)  # (1,1,T,X)
@@ -83,8 +120,8 @@ def main():
     train_gt = torch.cat(train_gts, dim=0).to(device)    # (B,1,T,X)
 
     # Validation data
-    val_gt_np = np.load(f'data/processed_data/motion/lane1/{val_date}.npy')
-    val_sp_np = np.load(f'data/processed_data/rds/lane1/{val_date}.npy')
+    val_gt_np = np.load(f'data/processed_data/motion/lane{lane}/{val_date}.npy')
+    val_sp_np = np.load(f'data/processed_data/rds/lane{lane}/{val_date}.npy')
     val_sp_np[val_sp_np < 0.0] = np.nan
     val_raw = torch.from_numpy(val_sp_np).float().unsqueeze(0).unsqueeze(0).to(device)
     val_gt = torch.from_numpy(val_gt_np).float().unsqueeze(0).unsqueeze(0).to(device)
@@ -105,16 +142,14 @@ def main():
     print('kernel_space_window:', kernel_space_window)
     # Model & optimizer
     model = AdaptiveSmoothing(kernel_time_window, kernel_space_window, dx, dt,
-                              init_tau= 30.0, init_delta= 1.0, 
-                              init_c_cong= 20.0, init_c_free= -45.0,
-                              init_v_thr= 50.0, init_v_delta= 10.0).to(device)
+                              init_tau= 15.0, init_delta= 0.15, 
+                              init_c_cong= 9.3, init_c_free= -43.5,
+                              init_v_thr= 37.3, init_v_delta= 12.4).to(device)
     optimizer = torch.optim.Adam(model.parameters(), 
-                                 lr=1e-2, 
-                                 weight_decay=1e-5)
-    num_epochs = 200
-
+                                 lr=1e-1)
+    num_epochs = 1000
     best_val_rmse = float('inf')
-    best_model_path = 'best_model.pth'
+    best_model_path = f'best_model_lane{lane}.pth'
 
     # Training loop
     for epoch in range(1, num_epochs+1):
@@ -130,12 +165,6 @@ def main():
         # Validation
         model.eval()
         with torch.no_grad():
-            # model.tau.clamp_(min=1.0, max=30.0)
-            # model.delta.clamp_(min=0.05, max=0.50)
-            # model.c_cong.clamp_(min=11.0, max=12.0)
-            # model.c_free.clamp_(max= -60.0, min= -40.0)
-            # model.v_thr.clamp_(min=20.0, max=60.0)
-            # model.v_delta.clamp_(min=5.0, max=10.0)
             for param in (
                     model.tau, model.delta,
                     model.c_cong, 
@@ -153,19 +182,33 @@ def main():
 
         if epoch % 10 == 0 or epoch == 1:
             print(f"Epoch {epoch:3d} — Train RMSE: {loss.item():.4f} — Val RMSE: {val_rmse.item():.4f}")
+            # save all the parameters to a jason file as well
+            # Save all model parameters to JSON, appending each epoch's params to a list
+            params = {
+                'epoch': epoch,
+                'tau': model.tau.item(),
+                'delta': model.delta.item(),
+                'c_cong': model.c_cong.item(),
+                'c_free': model.c_free.item(),
+                'v_thr': model.v_thr.item(),
+                'v_delta': model.v_delta.item(),
+                'train_rmse': loss.item(),
+                'val_rmse': val_rmse.item()
+            }
+            # Append to params_history.json
+            params_file = f'params_history_lane{lane}.json'
+            if os.path.exists(params_file):
+                with open(params_file, 'r') as f:
+                    params_list = json.load(f)
+            else:
+                params_list = []
+            params_list.append(params)
+            with open(params_file, 'w') as f:
+                json.dump(params_list, f, indent=4)
         if epoch % 100 == 0 or epoch == 1:
             print(f"tau: {model.tau.item():.2f}, delta: {model.delta.item():.2f}, "
                   f"c_cong: {model.c_cong.item():.2f}, c_free: {model.c_free.item():.2f}, "
                   f"v_thr: {model.v_thr.item():.2f}, v_delta: {model.v_delta.item():.2f}")
-    # draw the training and validation RMSE
-    plt.plot(range(1, num_epochs+1), [loss.item() for _ in range(num_epochs)], label='Train RMSE')
-    plt.plot(range(1, num_epochs+1), [val_rmse.item() for _ in range(num_epochs)], label='Validation RMSE')
-    plt.xlabel('Epochs')
-    plt.ylabel('RMSE')
-    plt.title('Training and Validation RMSE')
-    plt.legend()
-    plt.savefig('train_val_rmse.pdf', dpi=300, bbox_inches='tight')
-    plt.close()
     print(f"\nBest Validation RMSE: {best_val_rmse:.4f}")
     print(f"Best model saved at {best_model_path}")
 
@@ -186,12 +229,24 @@ def main():
     # sm = sm[:200, :200]
     # visualize the results
     plt.figure(figsize=(12, 6))
-    plt.rcParams.update({'font.size': 14, 'font.family': 'serif'})
+    plt.rcParams.update({'font.size': 20, 'font.family': 'serif'})
     plt.imshow(sm, cmap='RdYlGn', interpolation='nearest', origin='lower',vmin=0, vmax=80, aspect='auto')
     plt.colorbar(label='Speed')
     plt.title('ASM Smoothed Speed')
     plt.tight_layout()
-    plt.savefig('figures/smoothed_speed_val.pdf', dpi=300, bbox_inches='tight')
+    # reverse the y-axis
+    plt.gca().invert_yaxis()
+    plt.savefig(f'figures/smoothed_speed_val_lane{lane}.pdf', dpi=300, bbox_inches='tight')
     plt.close()
+
+def main():
+    import time
+    for lane in range(1, 5):
+        start_time = time.time()
+        print(f'Calibrating lane {lane}...')
+        calib(lane)
+        end_time = time.time()
+        print(f'Calibration time for lane {lane}: {end_time - start_time:.2f} seconds')
+        print(f'Finished calibrating lane {lane}.')
 if __name__ == "__main__":
     main()

@@ -1,367 +1,283 @@
-import numpy as np
-import pandas as pd
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
 import matplotlib.pyplot as plt
-from tqdm import tqdm
-
-def add_bounded_edges(matrix, boundary_value, row_boundary_thickness, col_boundary_thickness):
-    # function to add boundary to the matrix to avoid edge effect
-    """
-    @param matrix: A 2D numpy array to which the boundary will be added.
-    @type matrix: numpy.array
-    @param boundary_value: The value to fill the boundary with.
-    @type boundary_value: float
-    @param row_boundary_thickness: The thickness of the boundary to be added to the rows.
-    @type row_boundary_thickness: int
-    """
-    original_rows, original_cols = matrix.shape
-    new_rows = original_rows + 2 * row_boundary_thickness
-    new_cols = original_cols + 2 * col_boundary_thickness
-
-    # Create a new matrix filled with the boundary value
-    new_matrix = np.full((new_rows, new_cols), boundary_value)
-
-    # Insert the original matrix into the center of the new matrix
-    new_matrix[row_boundary_thickness:row_boundary_thickness + original_rows,
-               col_boundary_thickness:col_boundary_thickness + original_cols] = matrix
-
-    return new_matrix
-
-def generate_weight_matrices(smoothing_time_window, smoothing_space_window, delta=0.10, dx=0.02, dt=4, c_cong=12, c_free=-45, tau=9, plot=True):
-    """
-    Generate weight matrices for congestion and free flow conditions.
-    @param delta: range of spatial smoothing in x.
-    @type delta: float
-    @param dx: The distance in miles between two adjacent grid points.
-    @type dx: float
-    @param dt: The time in seconds between two adjacent grid points.
-    @type dt: int
-    @param c_cong: The speed in miles per hour for the congestion condition.
-    @type c_cong: int
-    @param c_free: The speed in miles per hour for the free flow condition.
-    @type c_free: int
-    @param tau: The range of temporal smoothing in time, in seconds.
-    @type tau: int
-    @param plot: Whether to plot the weight matrices.
-    @type plot: bool
-    @return: The weight matrices for congestion and free flow conditions.
-    @rtype: tuple of numpy.array
-    Example:
-        cong_weight_matrix, free_weight_matrix = generate_weight_matrices(delta=0.12, dx=0.02, dt=4, c_cong=13, c_free=-45, tau=20, plot=True)
-    """
-    t = smoothing_time_window
-    x = smoothing_space_window
-    x_mat = int(x / dx) * 2 + 1
-    t_mat = int(t / dt) * 2 + 1
-    matrix = np.zeros([x_mat, t_mat])
-    matrix_df = pd.DataFrame(matrix)
-    st_df = matrix_df.stack().reset_index()
-    st_df.columns = ['x', 't', 'weight']
-    st_df['time'] = dt * (st_df['t'] - int(t_mat / 2))
-    st_df['space'] = dx * (st_df['x'] - int(x_mat / 2))
-
-    def fill_cong_weight(row):
-        t_new = row['time'] - row['space'] / (c_cong / 3600)
-        return np.exp(-(abs(t_new) / tau + abs(row['space']) / delta))
-
-    def fill_free_weight(row):
-        t_new = row['time'] - row['space'] / (c_free / 3600)
-        return np.exp(-(abs(t_new) / tau + abs(row['space']) / delta))
-
-    st_df['cong_weight'] = st_df.apply(fill_cong_weight, axis=1)
-    st_df['free_weight'] = st_df.apply(fill_free_weight, axis=1)
-
-    if plot:
-        plt.figure(figsize=(10, 4))
-        plt.rc('text', usetex=True)
-        plt.rc('font', family='serif', size=20)
-        plt.scatter(st_df.time, -st_df.space, c=st_df.cong_weight, vmax=1, vmin=0, s=50)
-        plt.xlabel(r'\textbf{Time (seconds)}')
-        plt.ylabel(r'\textbf{Space (mile)}')
-        plt.title(r'\textbf{Congestion Weight}')
-        plt.colorbar(label=r'\textbf{Weight}')
-        plt.tight_layout()
-        plt.savefig('congest.png', dpi=300, bbox_inches='tight')
-        plt.show()
-
-        plt.figure(figsize=(10, 4))
-        plt.rc('text', usetex=True)
-        plt.rc('font', family='serif', size=20)
-        plt.scatter(st_df.time, -st_df.space, c=st_df.free_weight, vmax=1, vmin=0, s=50)
-        plt.xlabel(r'\textbf{Time (seconds)}')
-        plt.ylabel(r'\textbf{Space (mile)}')
-        plt.title(r'\textbf{Free Weight}')
-        plt.colorbar(label=r'\textbf{Weight}')
-        plt.tight_layout()
-        plt.savefig('free.png', dpi=300, bbox_inches='tight')
-        plt.show()
-
-    cong_weight_matrix = st_df.pivot(index='t', columns='x', values='cong_weight').values
-    free_weight_matrix = st_df.pivot(index='t', columns='x', values='free_weight').values
-
-    return cong_weight_matrix, free_weight_matrix
-
-
-from joblib import Parallel, delayed
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
+import time
+import os
 
-def smooth_speed_field(raw_data, cong_weight_matrix, free_weight_matrix, vthr = 40, vdelta = 10):
-    half_x_mat = int((cong_weight_matrix.shape[1] - 1) / 2)
-    half_t_mat = int((cong_weight_matrix.shape[0] - 1) / 2)
-    n_time, n_space = raw_data.shape
-
-    raw_data_w_bound = add_bounded_edges(raw_data, np.nan, half_t_mat, half_x_mat)
-
-    def process_time_idx(time_idx):
-        row_result = np.zeros(n_space)
-        for space_idx in range(n_space):
-            neighbour_matrix = raw_data_w_bound[
-                time_idx:time_idx + 2 * half_t_mat + 1,
-                space_idx:space_idx + 2 * half_x_mat + 1
-            ]
-            neighbour_matrix = np.array(neighbour_matrix)
-            mask = ~np.isnan(neighbour_matrix)
-            neighbour_fillna = np.nan_to_num(neighbour_matrix, nan=0.0)
-
-            N_cong = np.sum(mask * cong_weight_matrix)
-            N_free = np.sum(mask * free_weight_matrix)
-
-            if N_cong == 0:
-                v_cong = np.nan
-            else:
-                v_cong = np.sum(neighbour_fillna * cong_weight_matrix) / N_cong
-
-            if N_free == 0:
-                v_free = np.nan
-            else:
-                v_free = np.sum(neighbour_fillna * free_weight_matrix) / N_free
-
-            if N_cong != 0 and N_free != 0:
-                w = 0.5 * (1 + np.tanh((vthr - min(v_cong, v_free)) / vdelta))
-                v = w * v_cong + (1 - w) * v_free
-            elif N_cong == 0:
-                v = v_free
-            elif N_free == 0:
-                v = v_cong
-            else:
-                v = np.nan
-
-            row_result[space_idx] = v
-        return row_result
-
-    result_rows = Parallel(n_jobs=-1)(
-        delayed(process_time_idx)(time_idx) for time_idx in tqdm(range(n_time))
-    )
-    smooth_data = np.array(result_rows)
-    return smooth_data
-
-
-
-def matrix_to_coordinates(matrix):
+def fft_four_convs(Dp, Mp, k_cong, k_free, eps=0, use_ortho=True):
     """
-    Converts a 2D matrix (numpy.array) into a list of coordinates with values.
-
-    This function iterates through each element of a 2D matrix and
-    creates a list of coordinates, where each coordinate is represented
-    as a list containing the row index, column index, and the value at
-    that position in the matrix.
-
-    :param matrix: A numpy.array where each sublist represents a row in the matrix.
-    :type matrix: numpy.array filled with float
-    :return: A list of coordinates, where each coordinate is a list of [row_index, column_index, value].
-    :rtype: list of list of float
-
-    Example:
-        matrix = np.array([
-            [1, 2, 3],
-            [4, 5, 6],
-            [7, 8, 9]
-        ])
-
-        coords = matrix_to_coordinates(matrix) print(coords)  # Output: [[0, 0, 1], [0, 1, 2], [0, 2, 3], [1, 0, 4],
-        [1, 1, 5], [1, 2, 6], [2, 0, 7], [2, 1, 8], [2, 2, 9]]
+    Compute via FFT:
+        sum_cong = conv2d(Dp, k_cong)
+        sum_free = conv2d(Dp, k_free)
+        N_cong   = conv2d(Mp, k_cong)
+        N_free   = conv2d(Mp, k_free)
+    Inputs:
+      Dp, Mp:   (B, C, H, W)
+      k_cong,:  (F, C, Kh, Kw)
+      k_free:   (F, C, Kh, Kw)
+    Returns:
+      sum_cong, N_cong, sum_free, N_free each of shape (B, F, H-Kh+1, W-Kw+1)
     """
-    coordinates = []
-    for i in range(len(matrix)):
-        for j in range(len(matrix[i])):
-            coordinates.append([i, j, matrix[i][j]])
-    return coordinates
+    # ——— sanitize inputs ———
+    Dp = torch.nan_to_num(Dp, nan=0.0, posinf=0.0, neginf=0.0)
+    Mp = torch.nan_to_num(Mp, nan=0.0, posinf=0.0, neginf=0.0)
 
-def asm_data_w_x(processed_data, smoothing_time_window, smoothing_space_window, delta, tau, c_cong=12, c_free=-45, dx=0.02, dt=4, data_columns=['speed', 'occ', 'volume']):
-    t = smoothing_time_window
-    x = smoothing_space_window
-    x_mat = int(x / dx) * 2 + 1
-    t_mat = int(t / dt) * 2 + 1
-    matrix = np.zeros([x_mat, t_mat])
-    matrix_df = pd.DataFrame(matrix)
-    st_df = matrix_df.stack().reset_index()
-    st_df.columns = ['x', 't', 'weight']
-    st_df['time'] = dt * (st_df['t'] - int(t_mat / 2))
-    st_df['space'] = dx * (st_df['x'] - int(x_mat / 2))
+    B, C, H, W        = Dp.shape
+    F, _, Kh, Kw      = k_cong.shape
+    Fh, Fw            = H + Kh - 1, W + Kw - 1
+    device, dtype     = Dp.device, Dp.dtype
 
-    def fill_cong_weight(row):
-        t_new = row['time'] - row['space'] / (c_cong / 3600)
-        return np.exp(-(abs(t_new) / tau + abs(row['space']) / delta))
+    # ——— pad inputs ———
+    Dp_pad = torch.zeros(B, C, Fh, Fw, device=device, dtype=dtype)
+    Mp_pad = torch.zeros(B, C, Fh, Fw, device=device, dtype=dtype)
+    Dp_pad[..., :H, :W] = Dp
+    Mp_pad[..., :H, :W] = Mp
 
-    def fill_free_weight(row):
-        t_new = row['time'] - row['space'] / (c_free / 3600)
-        return np.exp(-(abs(t_new) / tau + abs(row['space']) / delta))
+    # ——— pad kernels ———
+    k1_pad = torch.zeros(F, C, Fh, Fw, device=device, dtype=dtype)
+    k2_pad = torch.zeros(F, C, Fh, Fw, device=device, dtype=dtype)
+    k1_pad[..., :Kh, :Kw] = k_cong
+    k2_pad[..., :Kh, :Kw] = k_free
 
-    st_df['cong_weight'] = st_df.apply(fill_cong_weight, axis=1)
-    st_df['free_weight'] = st_df.apply(fill_free_weight, axis=1)
-    cong_weight_matrix = st_df.pivot(index='t', columns='x', values='cong_weight').values
-    free_weight_matrix = st_df.pivot(index='t', columns='x', values='free_weight').values
-    half_x_mat = int((cong_weight_matrix.shape[1] - 1) / 2)
-    half_t_mat = int((cong_weight_matrix.shape[0] - 1) / 2)
-    # Assuming only lane 1 is used here
-    lanes = [1]
-    data_columns = data_columns
+    # choose normalization
+    norm = "ortho" if use_ortho else None
 
-    data = processed_data[
-        ['milemarker', 'time_unix_fix'] + [f'lane{lane}_{col}' for lane in lanes for col in data_columns]]
+    # ——— FFT both inputs and kernels ———
+    Df  = torch.fft.rfftn(Dp_pad, dim=(-2, -1), s=(Fh, Fw), norm=norm)
+    Mf  = torch.fft.rfftn(Mp_pad, dim=(-2, -1), s=(Fh, Fw), norm=norm)
+    Kf1 = torch.fft.rfftn(k1_pad, dim=(-2, -1), s=(Fh, Fw), norm=norm)
+    Kf2 = torch.fft.rfftn(k2_pad, dim=(-2, -1), s=(Fh, Fw), norm=norm)
 
-    min_milemarker = 58.7
-    max_milemarker = 62.7
-    min_time_unix = data['time_unix_fix'].min()
-    max_time_unix = data['time_unix_fix'].max()
+    # ——— pointwise multiply in freq domain ———
+    Y1 = Df * Kf1    # for sum_cong
+    Y2 = Df * Kf2    # for sum_free
+    Z1 = Mf * Kf1    # for N_cong
+    Z2 = Mf * Kf2    # for N_free
 
-    milemarkers = np.arange(min_milemarker, max_milemarker, dx)
-    time_range_unix = np.arange(min_time_unix, max_time_unix, dt)
-    space_time_matrix_unix = pd.DataFrame(index=time_range_unix, columns=milemarkers)
+    # ——— inverse FFT back to real ———
+    y1 = torch.fft.irfftn(Y1, dim=(-2, -1), s=(Fh, Fw), norm=norm)
+    y2 = torch.fft.irfftn(Y2, dim=(-2, -1), s=(Fh, Fw), norm=norm)
+    z1 = torch.fft.irfftn(Z1, dim=(-2, -1), s=(Fh, Fw), norm=norm)
+    z2 = torch.fft.irfftn(Z2, dim=(-2, -1), s=(Fh, Fw), norm=norm)
 
-    def fill_space_time_matrix(data, lane, data_type):
-        matrix = space_time_matrix_unix.copy()
-        for index, row in data.iterrows():
-            time_index = row['time_unix_fix']
-            milemarker_index = row['milemarker']
-            nearest_time = matrix.index.get_indexer([time_index], method='nearest')[0]
-            nearest_milemarker = matrix.columns.get_indexer([milemarker_index], method='nearest')[0]
-            matrix.iloc[nearest_time, nearest_milemarker] = row[f'lane{lane}_{data_type}']
-        return matrix
+    # ——— crop “valid” region ———
+    oh, ow = H - Kh + 1, W - Kw + 1
+    sum_cong = y1[..., Kh-1:Kh-1+oh, Kw-1:Kw-1+ow]
+    sum_free = y2[..., Kh-1:Kh-1+oh, Kw-1:Kw-1+ow]
+    N_cong   = z1[..., Kh-1:Kh-1+oh, Kw-1:Kw-1+ow]
+    N_free   = z2[..., Kh-1:Kh-1+oh, Kw-1:Kw-1+ow]
 
-    smoothed_data = {}
-    for lane in lanes:
-        for data_type in data_columns:
-            print(f'Processing lane {lane} {data_type}...')
-            if data_type == 'speed':
-                space_time_matrix = fill_space_time_matrix(data, lane, data_type)
-                pre_smoothed_data = pd.DataFrame(space_time_matrix.values)
-                pre_smoothed_data_w_bound = add_bounded_edges(pre_smoothed_data, np.nan, half_t_mat, half_x_mat)
-                n_time = pre_smoothed_data.shape[0]
-                n_space = pre_smoothed_data.shape[1]
+    # ——— optional epsilon to counts to avoid zero division downstream ———
+    N_cong = N_cong + eps
+    N_free = N_free + eps
 
-                # Parallelize over time indices.
-                def process_time_idx(time_idx):
-                    row_result = np.zeros(n_space)
-                    for space_idx in range(n_space):
-                        neighbour_matrix = pre_smoothed_data_w_bound[
-                            time_idx:time_idx + 2 * half_t_mat + 1,
-                            space_idx:space_idx + 2 * half_x_mat + 1]
-                        neighbour_matrix = np.array(neighbour_matrix)
-                        mask = ~np.isnan(neighbour_matrix)
-                        neighbour_fillna = np.nan_to_num(neighbour_matrix, nan=0.0)
-                        N_cong = np.sum(mask * cong_weight_matrix)
-                        N_free = np.sum(mask * free_weight_matrix)
-                        if N_cong == 0:
-                            v_cong = np.nan
-                        else:
-                            v_cong = np.sum(neighbour_fillna * cong_weight_matrix) / N_cong
-                        if N_free == 0:
-                            v_free = np.nan
-                        else:
-                            v_free = np.sum(neighbour_fillna * free_weight_matrix) / N_free
-                        if N_cong != 0 and N_free != 0:
-                            w = 0.5 * (1 + np.tanh((40 - min(v_cong, v_free)) / 10))
-                            v = w * v_cong + (1 - w) * v_free
-                        elif N_cong == 0:
-                            v = v_free
-                        elif N_free == 0:
-                            v = v_cong
-                        else:
-                            v = np.nan
-                        row_result[space_idx] = v
-                    return row_result
+    return sum_cong, N_cong, sum_free, N_free
 
-                result_rows = Parallel(n_jobs=-1)(delayed(process_time_idx)(time_idx) for time_idx in range(n_time))
-                smooth_data = np.array(result_rows)
-                smoothed_data[(lane, data_type)] = smooth_data
+def fill_space_time_matrix(raw_data, dx = 0.1, dt = 10, lane = 1, data_type = 'speed'):
+    data = raw_data[['milemarker', 'time_unix_fix', f'lane{lane}_{data_type}']].copy()
+    min_milemarker = round(data['milemarker'].min(),0)
+    max_milemarker = round(data['milemarker'].max(),0)
+    min_time_unix = int(data['time_unix_fix'].min())
+    max_time_unix = int(data['time_unix_fix'].max()) + 30
+    milemarkers = np.round(np.arange(min_milemarker, max_milemarker, dx), 2)
+    time_range_unix = np.round(np.arange(min_time_unix, max_time_unix, dt), 2)
+    matrix = pd.DataFrame(index=time_range_unix, columns=milemarkers)
+    for index, row in data.iterrows():
+        time_index = row['time_unix_fix']
+        milemarker_index = row['milemarker']
+        nearest_time = matrix.index.get_indexer([time_index], method='nearest')[0]
+        nearest_milemarker = matrix.columns.get_indexer([milemarker_index], method='nearest')[0]
+        matrix.iloc[nearest_time, nearest_milemarker] = row[f'lane{lane}_{data_type}']
+    return matrix
 
-            else:  # For data types other than 'speed'
-                space_time_matrix = fill_space_time_matrix(data, lane, data_type)
-                pre_smoothed_data = pd.DataFrame(space_time_matrix.values)
-                pre_smoothed_data_w_bound = add_bounded_edges(pre_smoothed_data, np.nan, half_t_mat, half_x_mat)
-                
-                # Reuse the already computed smoothed speed data for weighting.
-                pre_smoothed_speed = pd.DataFrame(smoothed_data[(lane, 'speed')])
-                pre_smoothed_data_speed_w_bound = add_bounded_edges(pre_smoothed_speed, np.nan, half_t_mat, half_x_mat)
-                
-                n_time = pre_smoothed_data.shape[0]
-                n_space = pre_smoothed_data.shape[1]
-                
-                def process_time_idx_non_speed(time_idx):
-                    row_result = np.zeros(n_space)
-                    for space_idx in range(n_space):
-                        neighbour_matrix = pre_smoothed_data_w_bound[
-                            time_idx:time_idx + 2 * half_t_mat + 1,
-                            space_idx:space_idx + 2 * half_x_mat + 1]
-                        neigbour_matrix_speed = pre_smoothed_data_speed_w_bound[
-                            time_idx:time_idx + 2 * half_t_mat + 1,
-                            space_idx:space_idx + 2 * half_x_mat + 1]
-                        neighbour_matrix = np.array(neighbour_matrix)
-                        mask = ~np.isnan(neighbour_matrix)
-                        neighbour_fillna = np.nan_to_num(neighbour_matrix, nan=0.0)
-                        
-                        neigbour_matrix_speed = np.array(neigbour_matrix_speed)
-                        mask_speed = ~np.isnan(neigbour_matrix_speed)
-                        neighbour_fillna_speed = np.nan_to_num(neigbour_matrix_speed, nan=0.0)
-                        
-                        N_cong = np.sum(mask * cong_weight_matrix)
-                        N_free = np.sum(mask * free_weight_matrix)
-                        N_cong_speed = np.sum(mask_speed * cong_weight_matrix)
-                        N_free_speed = np.sum(mask_speed * free_weight_matrix)
-                        if N_cong == 0:
-                            v_cong = np.nan
-                        else:
-                            v_cong = np.sum(neighbour_fillna * cong_weight_matrix) / N_cong
-                            v_cong_speed = np.sum(neighbour_fillna_speed * cong_weight_matrix) / N_cong_speed
-                        if N_free == 0:
-                            v_free = np.nan
-                        else:
-                            v_free = np.sum(neighbour_fillna * free_weight_matrix) / N_free
-                            v_free_speed = np.sum(neighbour_fillna_speed * free_weight_matrix) / N_free_speed
-                        if N_cong != 0 and N_free != 0:
-                            w = 0.5 * (1 + np.tanh((40 - min(v_cong_speed, v_free_speed)) / 10))
-                            v = w * v_cong + (1 - w) * v_free
-                        elif N_cong == 0:
-                            v = v_free
-                        elif N_free == 0:
-                            v = v_cong
-                        else:
-                            v = np.nan
-                        row_result[space_idx] = v
-                    return row_result
+class AdaptiveSmoothing(nn.Module):
+    def __init__(self,
+                 kernel_time_window: float,
+                 kernel_space_window: float,
+                 dx: float,
+                 dt: float,
+                 init_delta: float = 0.09, # mile
+                 init_tau: float = 9.64, # seconds
+                 init_c_cong: float = 13.05,
+                 init_c_free: float = -47.99,
+                 init_v_thr: float = 55.26,
+                 init_v_delta: float = 10.55):
+                #  init_delta: float = 0.10, # mile
+                #  init_tau: float = 12.57, # seconds
+                #  init_c_cong: float = 14.12,
+                #  init_c_free: float = -93.70,
+                #  init_v_thr: float = 45.15,
+                #  init_v_delta: float = 11.89):
+                #  init_delta: float = 0.15, # mile
+                #  init_tau: float = 15.0, # seconds
+                #  init_c_cong: float = 9.3,
+                #  init_c_free: float = -43.5,
+                #  init_v_thr: float = 37.3,
+                #  init_v_delta: float = 12.4):
+        super().__init__()
+        self.size_t = int(kernel_time_window / dt)
+        self.size_x = int(kernel_space_window / dx)
+        self.dt = dt
+        self.dx = dx
 
-                result_rows = Parallel(n_jobs=-1)(delayed(process_time_idx_non_speed)(time_idx) for time_idx in range(n_time))
-                smooth_data = np.array(result_rows)
-                smoothed_data[(lane, data_type)] = smooth_data
+        t_offs = torch.arange(-self.size_t, self.size_t + 1) * dt
+        # print(t_offs)
+        x_offs = torch.arange(-self.size_x, self.size_x + 1) * dx
+        # print(x_offs)
+        X, T = torch.meshgrid(x_offs, t_offs, indexing='ij')
+        self.register_buffer('T_offsets', T.float())
+        self.register_buffer('X_offsets', X.float())
 
-    # # If there are still NaNs in the smoothed data, fill them with the nearest values.
-    # smoothed_data = {
-    #     key: pd.DataFrame(value).fillna(method='ffill').fillna(method='bfill').values 
-    #     for key, value in smoothed_data.items()
-    # }
-    # Convert the smoothed data to coordinates.
-    result_dfs = []
-    for lane in lanes:
-        for data_type in data_columns:
-            smooth_data = smoothed_data[(lane, data_type)]
-            smooth_data_df = pd.DataFrame(matrix_to_coordinates(smooth_data))
-            smooth_data_df.columns = ['time_index', 'space_index', f'lane{lane}_{data_type}']
-            smooth_data_df['unix_time'] = min_time_unix + smooth_data_df['time_index'] * dt + dt / 2
-            smooth_data_df['milemarker'] = min_milemarker + smooth_data_df['space_index'] * dx + dx / 2
-            result_dfs.append(smooth_data_df[['unix_time', 'milemarker', f'lane{lane}_{data_type}']])
-    # Concatenate all results into a single DataFrame.
-    final_df = pd.concat(result_dfs, axis=1)
-    final_df = final_df.loc[:, ~final_df.columns.duplicated()]
-    return final_df
+        self.delta   = nn.Parameter(torch.tensor(init_delta))
+        self.tau     = nn.Parameter(torch.tensor(init_tau))
+        self.c_cong  = nn.Parameter(torch.tensor(init_c_cong))
+        self.c_free  = nn.Parameter(torch.tensor(init_c_free))
+        self.v_thr   = nn.Parameter(torch.tensor(init_v_thr))
+        self.v_delta = nn.Parameter(torch.tensor(init_v_delta))
+
+    def forward(self, raw_data: torch.Tensor):
+        # Ensure input is 4D: (B, C, T, X)
+        if raw_data.ndim == 2:
+            raw_data = raw_data.unsqueeze(0).unsqueeze(0)
+        elif raw_data.ndim == 3:
+            raw_data = raw_data.unsqueeze(1)
+
+        mask = (~raw_data.isnan()).float()
+        data = torch.nan_to_num(raw_data, nan=0.0)
+
+        c_cong_s = self.c_cong / 3600.0 # convert from mph to miles per second
+        c_free_s = self.c_free / 3600.0
+        # print('T_offsize:', self.T_offsets.size())
+        t_cong = self.T_offsets - self.X_offsets / c_cong_s
+        t_free = self.T_offsets - self.X_offsets / c_free_s
+
+        k_cong = torch.exp(-(t_cong.abs() / self.tau + self.X_offsets.abs() / self.delta))
+        # size of k_cong
+        # print('k_cong size:', k_cong.size())
+        k_free = torch.exp(-(t_free.abs() / self.tau + self.X_offsets.abs() / self.delta))
+
+        k_cong = k_cong.unsqueeze(0).unsqueeze(0)  # (1,1,Kt,Kx)
+        k_free = k_free.unsqueeze(0).unsqueeze(0)
+
+        pad = (self.size_t, self.size_t, self.size_x, self.size_x) # to deal with the edge effects
+        Dp = F.pad(data, pad, value=0.0)
+        # print data size
+        # print('Data size:', data.size())
+        # print('Dp size:', Dp.size())
+        Mp = F.pad(mask, pad, value=0.0)
+
+        # sum_cong = F.conv2d(Dp, k_cong)
+        # N_cong   = F.conv2d(Mp, k_cong)
+        # sum_free = F.conv2d(Dp, k_free)
+        # N_free   = F.conv2d(Mp, k_free)
+        # use FFT to compute the convolutions
+        sum_cong, N_cong, sum_free, N_free = fft_four_convs(Dp, Mp, k_cong, k_free)
+
+        v_cong = sum_cong / N_cong
+        v_free = sum_free / N_free
+        v_min = torch.min(v_cong, v_free)
+        w = 0.5 * (1 + torch.tanh((self.v_thr - v_min) / self.v_delta))
+        v = w * v_cong + (1 - w) * v_free
+
+        valid_cong = (N_cong > 0).float()
+        valid_free = (N_free > 0).float()
+        # if no cong data → use free; if no free data → use cong
+        v = valid_cong*valid_free*v + (1-valid_cong)*v_free + (1-valid_free)*v_cong
+        # check if there's nan if so print
+        if torch.isnan(v).any():
+            print("Warning! NaN detected in output")
+            print(N_cong)
+        # print size of v   
+        # print('v size:', v.size())
+        return v.squeeze(1)
+
+
+def main():
+    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cpu")
+    # # raw_data = pd.read_csv('data/2023-10-26.csv')
+    # raw_data = pd.read_csv('data/2025-04-09.csv', low_memory=False)
+    # speed = fill_space_time_matrix(raw_data, dx = 0.1, dt = 30, lane = 2, data_type = 'speed')
+    # output = speed.T.values.copy()
+    # # # make output to be float32
+    # output = output.astype(np.float32)
+    # speed = output.copy()
+    # np.save('data/speed.npy', output)
+    speed = np.load('data/processed_data/rds/lane4/2024-07-09.npy')
+    masked_speed = np.ma.masked_invalid(speed)
+
+    # Define a custom colormap: white for valid values, black for NaNs
+    import matplotlib.pyplot as plt
+    from matplotlib.colors import ListedColormap
+    cmap = ListedColormap(['white'])
+    # Use black for bad values (NaNs)
+    cmap.set_bad(color='grey')
+    plt.figure(figsize=(24, 6))
+    plt.rcParams.update({'font.size': 30, 'font.family': 'serif'})
+    # Display the image
+    plt.imshow(masked_speed, cmap=cmap, aspect='auto')
+    plt.colorbar(label='Speed')
+    plt.title('Sensor Sparsity')
+    plt.savefig('figures/mask.pdf', dpi=300, bbox_inches='tight')
+    plt.show()
+    # best_model_path = 'best_model.pth'
+    # make the data less than 0 to be nan
+    speed[speed < 0] = np.nan
+    # get the size of the speed
+    print('speed shape:', speed.shape)
+    time_size, space_size = speed.shape
+    # Hyperparameters
+    dx = 0.02                  # distance per cell
+    dt = 4.0                    # time per cell
+    kernel_time_window = time_size * dt  # seconds
+    kernel_space_window = space_size * dx  # same units as dx
+    # Instantiate the model
+    model = AdaptiveSmoothing(kernel_time_window,
+                              kernel_space_window,
+                              dx, dt).to(device)
+    # model.load_state_dict(torch.load(best_model_path))
+    model.eval()
+    plt.figure(figsize=(12, 6))
+    plt.rcParams.update({'font.size': 20, 'font.family': 'serif'})
+    # visualize the speed with nan to be black otherwise to be white
+    # plt.colorbar(label='Speed')
+    plt.title('RDS Raw Data')
+    plt.tight_layout()
+    # reverse the y-axis
+    plt.gca().invert_yaxis()
+    plt.savefig('figures/pre_speed.pdf', dpi=300, bbox_inches='tight')
+    plt.close()
+    raw = torch.from_numpy(speed).to(device)
+    start_time = time.time()
+    with torch.no_grad():
+        smoothed = model(raw)
+    sm = smoothed[0].cpu().numpy()
+    # save the smoothed data
+    sm = sm.astype(np.float32)
+    # save the results to the folder 
+    np.save('2024-07-09_sm_4.npy', sm)
+    end_time = time.time()
+    print(f"Execution time: {end_time - start_time:.2f} seconds")
+    # # see if the smoothed data is nan
+    # if np.isnan(sm).any():
+    #     print("Smoothed data contains NaN values.")
+    # else:
+    #     print("Smoothed data does not contain NaN values.")
+    plt.figure(figsize=(12, 6))
+    # make the font to be elegant
+    plt.rcParams.update({'font.size': 20, 'font.family': 'serif'})
+    plt.imshow(sm, cmap='RdYlGn', interpolation='nearest', origin='lower',vmin=0, vmax=80, aspect='auto')
+    plt.colorbar(label='Speed')
+    plt.title('ASM')
+    # reverse the y-axis
+    plt.gca().invert_yaxis()
+    plt.tight_layout()
+    plt.savefig('figures/smoothed_speed_calib_4.pdf', dpi=300, bbox_inches='tight')
+    plt.close()
+
+if __name__ == "__main__":
+    main()
+    
