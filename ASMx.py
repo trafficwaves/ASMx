@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
 import numpy as np
 import pandas as pd
 import time
@@ -105,18 +106,20 @@ class AdaptiveSmoothing(nn.Module):
                  init_c_free: float = -47.99,
                  init_v_thr: float = 55.26,
                  init_v_delta: float = 10.55):
-                #  init_delta: float = 0.10, # mile
-                #  init_tau: float = 12.57, # seconds
-                #  init_c_cong: float = 14.12,
-                #  init_c_free: float = -93.70,
-                #  init_v_thr: float = 45.15,
-                #  init_v_delta: float = 11.89):
-                #  init_delta: float = 0.15, # mile
-                #  init_tau: float = 15.0, # seconds
-                #  init_c_cong: float = 9.3,
-                #  init_c_free: float = -43.5,
-                #  init_v_thr: float = 37.3,
-                #  init_v_delta: float = 12.4):
+        """
+        Adaptive Smoothing Model for traffic speed data.
+        Args:
+            kernel_time_window (float): Time window for the kernel in seconds.
+            kernel_space_window (float): Space window for the kernel in miles.
+            dx (float): Distance per cell in miles.
+            dt (float): Time per cell in seconds.
+            init_delta (float): Initial value for delta parameter in miles.
+            init_tau (float): Initial value for tau parameter in seconds.
+            init_c_cong (float): Initial value for congested wave speed in mph.
+            init_c_free (float): Initial value for free-flow  wave speed in mph.
+            init_v_thr (float): Initial threshold speed in mph.
+            init_v_delta (float): Initial delta speed in mph.
+        """
         super().__init__()
         self.size_t = int(kernel_time_window / dt)
         self.size_x = int(kernel_space_window / dx)
@@ -209,16 +212,14 @@ def main():
     speed = np.load('data/processed_data/rds/lane4/2024-07-09.npy')
     masked_speed = np.ma.masked_invalid(speed)
 
-    # Define a custom colormap: white for valid values, black for NaNs
-    import matplotlib.pyplot as plt
-    from matplotlib.colors import ListedColormap
+
     cmap = ListedColormap(['white'])
     # Use black for bad values (NaNs)
     cmap.set_bad(color='grey')
     plt.figure(figsize=(24, 6))
-    plt.rcParams.update({'font.size': 30, 'font.family': 'serif'})
+    plt.rcParams.update({'font.size': 25, 'font.family': 'serif'})
     # Display the image
-    plt.imshow(masked_speed, cmap=cmap, aspect='auto')
+    plt.imshow(masked_speed, cmap=cmap, aspect='auto',vmin=0, vmax=80)
     plt.colorbar(label='Speed')
     plt.title('Sensor Sparsity')
     plt.savefig('figures/mask.pdf', dpi=300, bbox_inches='tight')
