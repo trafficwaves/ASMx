@@ -1,0 +1,17 @@
+Run ID: 20250607_221107
+Calibrating lane 1...
+Calibration time for lane 1: 49.07 seconds
+Finished calibrating lane 1.
+
+Calibrating lane 2...
+Calibration time for lane 2: 48.07 seconds
+Finished calibrating lane 2.
+
+Calibrating lane 3...
+Calibration time for lane 3: 48.01 seconds
+Finished calibrating lane 3.
+
+Calibrating lane 4...
+Calibration time for lane 4: 48.16 seconds
+Finished calibrating lane 4.
+

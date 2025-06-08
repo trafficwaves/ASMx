@@ -41,6 +41,7 @@ def time_to_unix(time_str):
     time = tz.localize(datetime.strptime(time_str, fmt))
     # return the unix time
     return time.timestamp() + 20
+    
 # split the date from entry
 def split_date(entry):
     return entry.split('.')[0]

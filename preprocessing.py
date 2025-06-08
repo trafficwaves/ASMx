@@ -8,8 +8,8 @@ def fill_space_time_matrix(raw_data, dx = 0.1, dt = 10, lane = 1, data_type = 's
     data = raw_data[['milemarker', 'time_unix_fix', f'lane{lane}_{data_type}']].copy()
     min_milemarker = 58.7
     max_milemarker = 62.7
-    min_time_unix = int(data['time_unix_fix'].min())
-    max_time_unix = int(data['time_unix_fix'].max()) + 30
+    min_time_unix = int(data['time_unix_fix'].min()) + 20
+    max_time_unix = int(data['time_unix_fix'].max()) + 20 + 30
     milemarkers = np.arange(min_milemarker, max_milemarker, dx)
     # print(milemarkers)
     time_range_unix = np.arange(min_time_unix, max_time_unix, dt)
@@ -37,16 +37,3 @@ for lane in range(1, 5):
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         np.save(f'{output_dir}/{date}.npy', output)
-        # num of nan
-        # print(f'lane {lane}, {date} num of nan: {np.isnan(output).sum()}')
-        # plt.imshow(output, cmap='hot', interpolation='nearest',aspect='auto')
-        # plt.colorbar()
-        # plt.title(f'Lane {lane} Speed Matrix on {date}')
-        # plt.xlabel('Space')
-        # plt.ylabel('Time')
-        # plt.savefig(f'demo_raw_{lane}_{date}.png')
-        # plt.close()
-
-
-
-
