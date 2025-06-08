@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import multiprocessing
 from multiprocessing import Pool
-import FAST
+import preprocessing.FAST as FAST
 import os
 import warnings
 warnings.filterwarnings("ignore")
@@ -41,7 +41,6 @@ def time_to_unix(time_str):
     time = tz.localize(datetime.strptime(time_str, fmt))
     # return the unix time
     return time.timestamp() + 20
-    
 # split the date from entry
 def split_date(entry):
     return entry.split('.')[0]
@@ -71,16 +70,16 @@ def process_entry(entry):
     processed_data.loc[processed_data.lane1_speed < 0, 'lane1_speed'] = np.nan
     processed_data.loc[processed_data.lane1_volume < 0, 'lane1_volume'] = np.nan
     processed_data.loc[processed_data.lane1_occ < 0, 'lane1_occ'] = np.nan
-    processed_data = processed_data[(processed_data.milemarker >= 58.7) & (processed_data.milemarker <= 62.7)].reset_index(drop=True)
+    processed_data = processed_data[(processed_data.milemarker >= 53.3) & (processed_data.milemarker <= 70.1)].reset_index(drop=True)
     # make the time larger than 6:00 less than 10:00
     # get the unix time of that day's 6:00 and 10:00
     start_time = time_to_unix(f'{date} 06:00:00')
     end_time = time_to_unix(f'{date} 10:00:00')
     # convert the time to unix time
     processed_data = processed_data[(processed_data.time_unix_fix >= start_time) & (processed_data.time_unix_fix <= end_time)].reset_index(drop=True)
-    if not os.path.exists(f'data/raw_data/rds'):
-        os.makedirs(f'data/raw_data/rds')
-    processed_data.to_csv(f'data/raw_data/rds/{date}.csv', index=False)
+    if not os.path.exists(f'data/corridor_data/rds'):
+        os.makedirs(f'data/corridor_data/rds')
+    processed_data.to_csv(f'data/corridor_data/rds/{date}.csv', index=False)
 
 
 # Use multiprocessing to process the entries concurrently
