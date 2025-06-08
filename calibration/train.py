@@ -20,7 +20,6 @@ warnings.filterwarnings("ignore")
 torch.set_float32_matmul_precision('medium')
 
 
-
 def rmse(pred, target, mask=None):
     """Compute RMSE; if mask is provided, only over mask==1.
     """
@@ -169,11 +168,6 @@ def calib(lane, runid):
     num_epochs = 1000
     best_val_rmse = float('inf')
 
-    # Create directory for saving the best model
-    if not os.path.exists(f'../model/{runid}'):
-        os.makedirs(f'../model/{runid}')
-    best_model_path = f'../model/{runid}/best_model_lane{lane}.pth'
-
     # Training loop
     for epoch in range(1, num_epochs+1):
         model.train()
@@ -185,7 +179,7 @@ def calib(lane, runid):
         loss.backward()
         optimizer.step()
         with torch.no_grad():
-            model.c_free.clamp_(max=60.0)  # c_free should be <= 60
+            model.c_free.clamp_(min=-60.0)  # c_free should be <= 60
         # Validation
         model.eval()
         with torch.no_grad():
@@ -202,24 +196,23 @@ def calib(lane, runid):
 
         if val_rmse.item() < best_val_rmse:
             best_val_rmse = val_rmse.item()
-            torch.save(model.state_dict(), best_model_path)
+            # only save the 6 parameters of the model
+            # Create directory if it doesn't exist
+            if not os.path.exists(f'../model/{runid}'):
+                os.makedirs(f'../model/{runid}')
+            # Save the best model parameters
+            best_model_path = f'../model/{runid}/best_model_lane{lane}.pt'
+            torch.save({
+                'tau': model.tau,
+                'delta': model.delta,
+                'c_cong': model.c_cong,
+                'c_free': model.c_free,
+                'v_thr': model.v_thr,
+                'v_delta': model.v_delta
+            }, best_model_path)
         # save hyperparameters to logs/ before run the calibration
         if not os.path.exists('../logs/calibration'):
             os.makedirs('../logs/calibration')
-        # Save hyperparameters to a JSON file
-        hyperparams = {
-            'runid': runid,
-            'lane': lane,
-            'kernel_time_window': kernel_time_window,
-            'kernel_space_window': kernel_space_window,
-            'dx': dx,
-            'dt': dt,
-            'num_epochs': num_epochs,
-            'learning_rate': 1e-1
-        }
-        hyperparams_file = f'../logs/calibration/hyperparams_lane{lane}.json'
-        with open(hyperparams_file, 'w') as f:
-            json.dump(hyperparams, f, indent=4)
         if epoch % 10 == 0 or epoch == 1:
             print(f"Epoch {epoch:3d} — Train RMSE: {loss.item():.4f} — Val RMSE: {val_rmse.item():.4f}")
             # save all the parameters to a jason file as well
@@ -256,42 +249,38 @@ def calib(lane, runid):
     print(f"\nBest Validation RMSE: {best_val_rmse:.4f}")
     print(f"Best model saved at {best_model_path}")
 
-    # Optionally, load and print final best model
-    model.load_state_dict(torch.load(best_model_path))
-    # for name, param in model.named_parameters():
-    #     if param.requires_grad:
-    #         print(f"{name}: {param.data:.2f}")
-     # run the results for the validation set
-     # load the best model
-    model.load_state_dict(torch.load(best_model_path))
-    model.eval()
-    with torch.no_grad():
-        smoothed = model(train_raw)
-    sm = smoothed[0].cpu().numpy()
-    # visualize the results
-    plt.figure(figsize=(12, 6))
-    plt.rcParams.update({'font.size': 20, 'font.family': 'serif'})
-    plt.imshow(sm, cmap='RdYlGn', interpolation='nearest', origin='lower',vmin=0, vmax=80, aspect='auto')
-    plt.colorbar(label='Speed')
-    plt.title('ASM Smoothed Speed')
-    plt.tight_layout()
-    # reverse the y-axis
-    plt.gca().invert_yaxis()
-    plt.savefig(f'../figures/smoothed_speed_val_lane{lane}.pdf', dpi=300, bbox_inches='tight')
-    plt.close()
-
 def main():
     import time
+    import os
     # use the runid based on current time
     runid = generate_runid()
     print("Run ID:", runid)
-    for lane in range(1, 5):
-        start_time = time.time()
-        print(f'Calibrating lane {lane}...')
-        calib(lane, runid)
-        end_time = time.time()
-        print(f'Calibration time for lane {lane}: {end_time - start_time:.2f} seconds')
-        print(f'Finished calibrating lane {lane}.')
+    # Create a log directory for this run
+    log_dir = f'../logs/calibration/{runid}'
+    os.makedirs(log_dir, exist_ok=True)
+    log_path = os.path.join(log_dir, 'calibration_log.txt')
+
+    # Open the log file once and append entries for each lane
+    with open(log_path, 'w') as lf:
+        lf.write(f"Run ID: {runid}\n")
+        for lane in range(1, 5):
+            start_time = time.time()
+            msg = f"Calibrating lane {lane}..."
+            print(msg)
+            lf.write(msg + "\n")
+
+            calib(lane, runid)
+
+            end_time = time.time()
+            elapsed = end_time - start_time
+            msg2 = f"Calibration time for lane {lane}: {elapsed:.2f} seconds"
+            msg3 = f"Finished calibrating lane {lane}."
+            print(msg2)
+            print(msg3)
+            lf.write(msg2 + "\n")
+            lf.write(msg3 + "\n")
+            lf.write("\n")
+    print(f"All lanes calibrated. Logs saved to {log_path}")
 
 if __name__ == "__main__":
     main()
