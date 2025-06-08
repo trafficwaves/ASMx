@@ -19,3 +19,14 @@ conda env export --no-builds > environment.yml
 ```bash
 python ASMNN.py
 ```
+
+
+File structure:
+```
+ASMx/
+├── calibration/
+├── data/
+├── figures/
+├── logs/
+├── models/
+```

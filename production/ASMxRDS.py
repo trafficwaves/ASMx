@@ -2,13 +2,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
 import numpy as np
 import pandas as pd
 import time
 import os
 
-def fft_four_convs(Dp, Mp, k_cong, k_free, eps=0, use_ortho=True):
+def fft_four_convs(Dp, Mp, k_cong, k_free, eps=1e-6, use_ortho=True):
     """
     Compute via FFT:
         sum_cong = conv2d(Dp, k_cong)
@@ -106,20 +105,12 @@ class AdaptiveSmoothing(nn.Module):
                  init_c_free: float = -47.99,
                  init_v_thr: float = 55.26,
                  init_v_delta: float = 10.55):
-        """
-        Adaptive Smoothing Model for traffic speed data.
-        Args:
-            kernel_time_window (float): Time window for the kernel in seconds.
-            kernel_space_window (float): Space window for the kernel in miles.
-            dx (float): Distance per cell in miles.
-            dt (float): Time per cell in seconds.
-            init_delta (float): Initial value for delta parameter in miles.
-            init_tau (float): Initial value for tau parameter in seconds.
-            init_c_cong (float): Initial value for congested wave speed in mph.
-            init_c_free (float): Initial value for free-flow  wave speed in mph.
-            init_v_thr (float): Initial threshold speed in mph.
-            init_v_delta (float): Initial delta speed in mph.
-        """
+                #  init_delta: float = 0.15, # mile
+                #  init_tau: float = 15.0, # seconds
+                #  init_c_cong: float = 9.3,
+                #  init_c_free: float = -43.5,
+                #  init_v_thr: float = 37.3,
+                #  init_v_delta: float = 12.4):
         super().__init__()
         self.size_t = int(kernel_time_window / dt)
         self.size_x = int(kernel_space_window / dx)
@@ -209,21 +200,6 @@ def main():
     # output = output.astype(np.float32)
     # speed = output.copy()
     # np.save('data/speed.npy', output)
-    speed = np.load('data/processed_data/rds/lane4/2024-07-09.npy')
-    masked_speed = np.ma.masked_invalid(speed)
-
-
-    cmap = ListedColormap(['white'])
-    # Use black for bad values (NaNs)
-    cmap.set_bad(color='grey')
-    plt.figure(figsize=(24, 6))
-    plt.rcParams.update({'font.size': 25, 'font.family': 'serif'})
-    # Display the image
-    plt.imshow(masked_speed, cmap=cmap, aspect='auto',vmin=0, vmax=80)
-    plt.colorbar(label='Speed')
-    plt.title('Sensor Sparsity')
-    plt.savefig('figures/mask.pdf', dpi=300, bbox_inches='tight')
-    plt.show()
     # best_model_path = 'best_model.pth'
     # make the data less than 0 to be nan
     speed[speed < 0] = np.nan
@@ -243,8 +219,8 @@ def main():
     model.eval()
     plt.figure(figsize=(12, 6))
     plt.rcParams.update({'font.size': 20, 'font.family': 'serif'})
-    # visualize the speed with nan to be black otherwise to be white
-    # plt.colorbar(label='Speed')
+    plt.imshow(speed, cmap='RdYlGn', interpolation='nearest', origin='lower',vmin=0, vmax=80, aspect='auto')
+    plt.colorbar(label='Speed')
     plt.title('RDS Raw Data')
     plt.tight_layout()
     # reverse the y-axis
