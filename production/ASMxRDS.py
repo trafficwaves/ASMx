@@ -7,7 +7,7 @@ import pandas as pd
 import time
 import os
 
-def fft_four_convs(Dp, Mp, k_cong, k_free, eps=0, use_ortho=True):
+def fft_four_convs(Dp, Mp, k_cong, k_free, eps=1e-6, use_ortho=True):
     """
     Compute via FFT:
         sum_cong = conv2d(Dp, k_cong)
