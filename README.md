@@ -16,9 +16,8 @@ conda env export --no-builds > environment.yml
 ```
 
 ## Run the smoothing
-```bash
-python ASMNN.py
-```
+
+
 
 
 File structure:
@@ -29,4 +28,10 @@ ASMx/
 ├── figures/
 ├── logs/
 ├── models/
+```
+
+
+Check out the enviroment.yml file for the list of dependencies.
+```
+conda env export --no-builds > environment.yml
 ```
