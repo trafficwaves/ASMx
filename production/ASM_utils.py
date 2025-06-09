@@ -149,8 +149,8 @@ class AdaptiveSmoothing(nn.Module):
         w = 0.5 * (1 + torch.tanh((self.v_thr - v_min) / self.v_delta))
         v = w * v_cong + (1 - w) * v_free
 
-        valid_cong = (N_cong > 1e-6).float()
-        valid_free = (N_free > 1e-6).float()
+        valid_cong = (N_cong > 0).float()
+        valid_free = (N_free > 0).float()
         # if no cong data → use free; if no free data → use cong
         v = valid_cong*valid_free*v + (1-valid_cong)*v_free + (1-valid_free)*v_cong
         # check if there's nan if so print

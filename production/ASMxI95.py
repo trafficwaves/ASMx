@@ -200,7 +200,7 @@ def main():
     # output = output.astype(np.float32)
     # speed = output.copy()
     # np.save('data/I95speed.npy', output)
-    speed = np.load('data/I95speed.npy')
+    speed = np.load('../data/I95speed.npy')
     # best_model_path = 'best_model.pth'
     # make the data less than 0 to be nan
     speed[speed < 0] = np.nan
@@ -226,7 +226,7 @@ def main():
     plt.tight_layout()
     # reverse the y-axis
     # plt.gca().invert_yaxis()
-    plt.savefig('figures/I95pre_speed.pdf', dpi=300, bbox_inches='tight')
+    plt.savefig('../figures/I95pre_speed.pdf', dpi=300, bbox_inches='tight')
     plt.close()
     raw = torch.from_numpy(speed).to(device)
     start_time = time.time()
@@ -253,7 +253,7 @@ def main():
     # reverse the y-axis
     # plt.gca().invert_yaxis()
     plt.tight_layout()
-    plt.savefig('figures/smoothed_speed_I95.pdf', dpi=300, bbox_inches='tight')
+    plt.savefig('../figures/smoothed_speed_I95.pdf', dpi=300, bbox_inches='tight')
     plt.close()
 
 if __name__ == "__main__":

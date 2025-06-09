@@ -2,19 +2,22 @@ name: ASMx
 channels:
   - pytorch
   - nvidia
+  - conda-forge
   - defaults
   - https://repo.anaconda.com/pkgs/main
   - https://repo.anaconda.com/pkgs/r
 dependencies:
   - _libgcc_mutex=0.1
   - _openmp_mutex=5.1
+  - asttokens=3.0.0
   - blas=1.0
   - brotli-python=1.0.9
   - bzip2=1.0.8
   - c-ares=1.19.1
-  - ca-certificates=2025.2.25
+  - ca-certificates=2025.4.26
   - certifi=2025.1.31
   - charset-normalizer=3.3.2
+  - comm=0.2.2
   - contourpy=1.3.1
   - cuda-cudart=12.1.105
   - cuda-cupti=12.1.105
@@ -26,6 +29,10 @@ dependencies:
   - cuda-version=12.8
   - cycler=0.11.0
   - cyrus-sasl=2.1.28
+  - debugpy=1.8.14
+  - decorator=5.2.1
+  - exceptiongroup=1.2.2
+  - executing=2.2.0
   - expat=2.7.1
   - ffmpeg=4.3
   - filelock=3.17.0
@@ -38,9 +45,16 @@ dependencies:
   - gnutls=3.6.15
   - icu=73.1
   - idna=3.7
+  - importlib-metadata=8.6.1
   - intel-openmp=2023.1.0
+  - ipykernel=6.29.5
+  - ipython=9.2.0
+  - ipython_pygments_lexers=1.1.1
+  - jedi=0.19.2
   - jinja2=3.1.6
   - jpeg=9e
+  - jupyter_client=8.6.3
+  - jupyter_core=5.7.2
   - kiwisolver=1.4.8
   - krb5=1.20.1
   - lame=3.100
@@ -60,9 +74,10 @@ dependencies:
   - libedit=3.1.20230828
   - libev=4.33
   - libffi=3.4.4
-  - libgcc-ng=11.2.0
+  - libgcc=14.2.0
+  - libgcc-ng=14.2.0
   - libglib=2.78.4
-  - libgomp=11.2.0
+  - libgomp=14.2.0
   - libiconv=1.16
   - libidn2=2.3.4
   - libjpeg-turbo=2.0.0
@@ -73,7 +88,9 @@ dependencies:
   - libpng=1.6.39
   - libpq=17.4
   - libprotobuf=5.29.3
+  - libsodium=1.0.18
   - libssh2=1.11.1
+  - libstdcxx=14.2.0
   - libstdcxx-ng=11.2.0
   - libtasn1=4.19.0
   - libtiff=4.7.0
@@ -89,6 +106,7 @@ dependencies:
   - markupsafe=3.0.2
   - matplotlib=3.10.0
   - matplotlib-base=3.10.0
+  - matplotlib-inline=0.1.7
   - mkl=2023.1.0
   - mkl-service=2.4.0
   - mkl_fft=1.3.11
@@ -98,6 +116,7 @@ dependencies:
   - mpmath=1.3.0
   - mysql=8.4.0
   - ncurses=6.4
+  - nest-asyncio=1.6.0
   - nettle=3.7.3
   - networkx=3.4.2
   - numpy=2.2.4
@@ -106,21 +125,32 @@ dependencies:
   - openh264=2.1.1
   - openjpeg=2.5.2
   - openldap=2.6.4
-  - openssl=3.0.16
+  - openssl=3.5.0
   - packaging=24.2
+  - parso=0.8.4
   - pcre2=10.42
+  - pexpect=4.9.0
+  - pickleshare=0.7.5
   - pillow=11.1.0
   - pip=25.0
+  - platformdirs=4.3.7
+  - prompt-toolkit=3.0.51
+  - psutil=7.0.0
+  - ptyprocess=0.7.0
+  - pure_eval=0.2.3
+  - pygments=2.19.1
   - pyparsing=3.2.0
   - pyqt=6.7.1
   - pyqt6-sip=13.9.1
   - pysocks=1.7.1
   - python=3.11.11
   - python-dateutil=2.9.0post0
+  - python_abi=3.11
   - pytorch=2.5.1
   - pytorch-cuda=12.1
   - pytorch-mutex=1.0
   - pyyaml=6.0.2
+  - pyzmq=26.2.0
   - qtbase=6.7.3
   - qtdeclarative=6.7.3
   - qtsvg=6.7.3
@@ -133,24 +163,47 @@ dependencies:
   - sip=6.10.0
   - six=1.17.0
   - sqlite=3.45.3
-  - sympy=1.13.3
+  - stack_data=0.6.3
   - tbb=2021.8.0
   - tk=8.6.14
   - torchaudio=2.5.1
   - torchtriton=3.1.0
   - torchvision=0.20.1
   - tornado=6.4.2
+  - traitlets=5.14.3
   - typing_extensions=4.12.2
   - unicodedata2=15.1.0
   - urllib3=2.3.0
+  - wcwidth=0.2.13
   - wheel=0.45.1
   - xcb-util-cursor=0.1.4
   - xz=5.6.4
   - yaml=0.2.5
+  - zeromq=4.3.5
+  - zipp=3.21.0
   - zlib=1.2.13
   - zstd=1.5.6
   - pip:
+      - absl-py==2.2.2
+      - fsspec==2025.3.2
+      - grpcio==1.71.0
+      - joblib==1.4.2
+      - markdown==3.8
+      - nflows==0.14
       - pandas==2.2.3
+      - patsy==1.0.1
+      - protobuf==6.30.2
       - pytz==2025.2
+      - scikit-learn==1.6.1
+      - scipu==0.1.3
+      - scipy==1.15.2
+      - seaborn==0.13.2
+      - statsmodels==0.14.4
+      - sympy==1.13.1
+      - tensorboard==2.19.0
+      - tensorboard-data-server==0.7.2
+      - threadpoolctl==3.6.0
+      - tqdm==4.67.1
       - tzdata==2025.2
+      - werkzeug==3.1.3
 prefix: /home/junyi/miniconda3/envs/ASMx
