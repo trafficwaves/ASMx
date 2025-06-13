@@ -2,13 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
-import numpy as np
-import pandas as pd
-import time
-import os
 
-def fft_four_convs(Dp, Mp, k_cong, k_free, eps=0, use_ortho=True):
+def fft_four_convs(Dp, Mp, k_cong, k_free, eps=1e-6, use_ortho=True):
     """
     Compute via FFT:
         sum_cong = conv2d(Dp, k_cong)
@@ -77,49 +72,18 @@ def fft_four_convs(Dp, Mp, k_cong, k_free, eps=0, use_ortho=True):
 
     return sum_cong, N_cong, sum_free, N_free
 
-def fill_space_time_matrix(raw_data, dx = 0.1, dt = 10, lane = 1, data_type = 'speed'):
-    data = raw_data[['milemarker', 'time_unix_fix', f'lane{lane}_{data_type}']].copy()
-    min_milemarker = round(data['milemarker'].min(),0)
-    max_milemarker = round(data['milemarker'].max(),0)
-    min_time_unix = int(data['time_unix_fix'].min())
-    max_time_unix = int(data['time_unix_fix'].max()) + 30
-    milemarkers = np.round(np.arange(min_milemarker, max_milemarker, dx), 2)
-    time_range_unix = np.round(np.arange(min_time_unix, max_time_unix, dt), 2)
-    matrix = pd.DataFrame(index=time_range_unix, columns=milemarkers)
-    for index, row in data.iterrows():
-        time_index = row['time_unix_fix']
-        milemarker_index = row['milemarker']
-        nearest_time = matrix.index.get_indexer([time_index], method='nearest')[0]
-        nearest_milemarker = matrix.columns.get_indexer([milemarker_index], method='nearest')[0]
-        matrix.iloc[nearest_time, nearest_milemarker] = row[f'lane{lane}_{data_type}']
-    return matrix
-
 class AdaptiveSmoothing(nn.Module):
     def __init__(self,
                  kernel_time_window: float,
                  kernel_space_window: float,
                  dx: float,
                  dt: float,
-                 init_delta: float = 0.09, # mile
-                 init_tau: float = 9.64, # seconds
-                 init_c_cong: float = 13.05,
-                 init_c_free: float = -47.99,
-                 init_v_thr: float = 55.26,
-                 init_v_delta: float = 10.55):
-        """
-        Adaptive Smoothing Model for traffic speed data.
-        Args:
-            kernel_time_window (float): Time window for the kernel in seconds.
-            kernel_space_window (float): Space window for the kernel in miles.
-            dx (float): Distance per cell in miles.
-            dt (float): Time per cell in seconds.
-            init_delta (float): Initial value for delta parameter in miles.
-            init_tau (float): Initial value for tau parameter in seconds.
-            init_c_cong (float): Initial value for congested wave speed in mph.
-            init_c_free (float): Initial value for free-flow  wave speed in mph.
-            init_v_thr (float): Initial threshold speed in mph.
-            init_v_delta (float): Initial delta speed in mph.
-        """
+                 init_delta: float = 0.10, # mile
+                 init_tau: float = 9.0, # seconds
+                 init_c_cong: float = 12.0,
+                 init_c_free: float = -45.0,
+                 init_v_thr: float = 40.0,
+                 init_v_delta: float = 10.0):
         super().__init__()
         self.size_t = int(kernel_time_window / dt)
         self.size_x = int(kernel_space_window / dx)
@@ -196,89 +160,3 @@ class AdaptiveSmoothing(nn.Module):
         # print size of v   
         # print('v size:', v.size())
         return v.squeeze(1)
-
-
-def main():
-    # device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    device = torch.device("cpu")
-    # # raw_data = pd.read_csv('data/2023-10-26.csv')
-    # raw_data = pd.read_csv('data/2025-04-09.csv', low_memory=False)
-    # speed = fill_space_time_matrix(raw_data, dx = 0.1, dt = 30, lane = 2, data_type = 'speed')
-    # output = speed.T.values.copy()
-    # # # make output to be float32
-    # output = output.astype(np.float32)
-    # speed = output.copy()
-    # np.save('data/speed.npy', output)
-    speed = np.load('data/processed_data/rds/lane4/2024-07-09.npy')
-    masked_speed = np.ma.masked_invalid(speed)
-
-
-    cmap = ListedColormap(['white'])
-    # Use black for bad values (NaNs)
-    cmap.set_bad(color='grey')
-    plt.figure(figsize=(24, 6))
-    plt.rcParams.update({'font.size': 25, 'font.family': 'serif'})
-    # Display the image
-    plt.imshow(masked_speed, cmap=cmap, aspect='auto',vmin=0, vmax=80)
-    plt.colorbar(label='Speed')
-    plt.title('Sensor Sparsity')
-    plt.savefig('figures/mask.pdf', dpi=300, bbox_inches='tight')
-    plt.show()
-    # best_model_path = 'best_model.pth'
-    # make the data less than 0 to be nan
-    speed[speed < 0] = np.nan
-    # get the size of the speed
-    print('speed shape:', speed.shape)
-    time_size, space_size = speed.shape
-    # Hyperparameters
-    dx = 0.02                  # distance per cell
-    dt = 4.0                    # time per cell
-    kernel_time_window = time_size * dt  # seconds
-    kernel_space_window = space_size * dx  # same units as dx
-    # Instantiate the model
-    model = AdaptiveSmoothing(kernel_time_window,
-                              kernel_space_window,
-                              dx, dt).to(device)
-    # model.load_state_dict(torch.load(best_model_path))
-    model.eval()
-    plt.figure(figsize=(12, 6))
-    plt.rcParams.update({'font.size': 20, 'font.family': 'serif'})
-    # visualize the speed with nan to be black otherwise to be white
-    # plt.colorbar(label='Speed')
-    plt.title('RDS Raw Data')
-    plt.tight_layout()
-    # reverse the y-axis
-    plt.gca().invert_yaxis()
-    plt.savefig('figures/pre_speed.pdf', dpi=300, bbox_inches='tight')
-    plt.close()
-    raw = torch.from_numpy(speed).to(device)
-    start_time = time.time()
-    with torch.no_grad():
-        smoothed = model(raw)
-    sm = smoothed[0].cpu().numpy()
-    # save the smoothed data
-    sm = sm.astype(np.float32)
-    # save the results to the folder 
-    np.save('2024-07-09_sm_4.npy', sm)
-    end_time = time.time()
-    print(f"Execution time: {end_time - start_time:.2f} seconds")
-    # # see if the smoothed data is nan
-    # if np.isnan(sm).any():
-    #     print("Smoothed data contains NaN values.")
-    # else:
-    #     print("Smoothed data does not contain NaN values.")
-    plt.figure(figsize=(12, 6))
-    # make the font to be elegant
-    plt.rcParams.update({'font.size': 20, 'font.family': 'serif'})
-    plt.imshow(sm, cmap='RdYlGn', interpolation='nearest', origin='lower',vmin=0, vmax=80, aspect='auto')
-    plt.colorbar(label='Speed')
-    plt.title('ASM')
-    # reverse the y-axis
-    plt.gca().invert_yaxis()
-    plt.tight_layout()
-    plt.savefig('figures/smoothed_speed_calib_4.pdf', dpi=300, bbox_inches='tight')
-    plt.close()
-
-if __name__ == "__main__":
-    main()
-    
