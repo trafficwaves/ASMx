@@ -11,6 +11,8 @@ import os
 import random
 import thop
 import time
+import logging
+
 # Set random seeds for reproducibility
 seed = 42
 np.random.seed(seed)
@@ -171,12 +173,13 @@ def count_adaptive_smoothing(m, x, y):
 
 
 def benchmark_performance(model, input_tensor, device, num_iter=50):
-    print("\n--- Computational Performance Benchmark ---")
+    logger = logging.getLogger(__name__)
+    logger.info("\n--- Computational Performance Benchmark ---")
     model.eval()
     
     # 1. Total Parameters
     total_params = sum(p.numel() for p in model.parameters())
-    print(f"Total Parameters: {total_params}")
+    logger.info(f"Total Parameters: {total_params}")
 
     # 2. FLOPs using thop
     try:
@@ -185,10 +188,10 @@ def benchmark_performance(model, input_tensor, device, num_iter=50):
         custom_ops = {AdaptiveSmoothing: count_adaptive_smoothing}
         macs, _ = thop.profile(model, inputs=(input_tensor, ), custom_ops=custom_ops, verbose=False)
         flops = 2 * macs 
-        print(f"FLOPs (est): {flops:.2e}")
-        print(f"MACs (est): {macs:.2e}")
+        logger.info(f"FLOPs (est): {flops:.2e}")
+        logger.info(f"MACs (est): {macs:.2e}")
     except Exception as e:
-        print(f"FLOPs calculation failed: {e}")
+        logger.error(f"FLOPs calculation failed: {e}")
 
 
     # 3. Throughput
@@ -212,10 +215,10 @@ def benchmark_performance(model, input_tensor, device, num_iter=50):
         
         avg_time = (end_time - start_time) / num_iter
         throughput = 1.0 / avg_time
-        print(f"Avg Inference Time: {avg_time*1000:.2f} ms")
-        print(f"Throughput: {throughput:.2f} inferences/sec (batch size {input_tensor.shape[0]})")
+        logger.info(f"Avg Inference Time: {avg_time*1000:.2f} ms")
+        logger.info(f"Throughput: {throughput:.2f} inferences/sec (batch size {input_tensor.shape[0]})")
     except Exception as e:
-        print(f"Throughput measurement failed: {e}")
+        logger.error(f"Throughput measurement failed: {e}")
 
     # 4. Memory Footprint
     if device.type == 'cuda':
@@ -224,14 +227,14 @@ def benchmark_performance(model, input_tensor, device, num_iter=50):
             with torch.no_grad():
                 _ = model(input_tensor)
             max_mem = torch.cuda.max_memory_allocated() / (1024 ** 2) # MB
-            print(f"Peak CUDA Memory: {max_mem:.2f} MB")
+            logger.info(f"Peak CUDA Memory: {max_mem:.2f} MB")
         except Exception as e:
-            print(f"Memory tracking failed: {e}")
+            logger.error(f"Memory tracking failed: {e}")
     else:
-        print("Memory footprint tracking requires CUDA.")
+        logger.info("Memory footprint tracking requires CUDA.")
     
     # Switch back to train mode if needed, though caller should handle
-    print("-------------------------------------------\n")
+    logger.info("-------------------------------------------\n")
 
 # generate a runid with characters and numbers based on the current time
 import datetime
@@ -243,13 +246,29 @@ def generate_runid():
     return f"{time_str}"
 
 
-def calib(lane, runid):
+def calib(lane, runid, date_id=1, base_log_dir=None, base_model_dir=None):
+    logger = logging.getLogger(__name__)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
+    # Setup directories
+    if base_log_dir:
+        log_dir = os.path.join(base_log_dir, str(date_id))
+    else:
+        log_dir = f'../logs/calibration/{runid}/{date_id}'
+        
+    if base_model_dir:
+        model_dir = os.path.join(base_model_dir, str(date_id))
+    else:
+        model_dir = f'../model/{runid}/{date_id}'
+        
+    os.makedirs(log_dir, exist_ok=True)
+    os.makedirs(model_dir, exist_ok=True)
+
     # Load dates
     dates = pd.read_csv('../dates.csv').date.tolist()
-    train_dates = dates[1:2]
-    val_date = dates[1]
-
+    train_dates = dates[date_id:date_id+1]
+    val_date = dates[date_id]
+    logger.info(f"Training on dates: {train_dates}, Validating on date: {val_date}")
     # Load all training data
     train_raws, train_gts = [], []
     for date in train_dates:
@@ -286,8 +305,8 @@ def calib(lane, runid):
     dt = 4.0
     kernel_time_window = val_sp_np.shape[1] * dt
     kernel_space_window = val_sp_np.shape[0] * dx
-    print('kernel_time_window:', kernel_time_window)
-    print('kernel_space_window:', kernel_space_window)
+    logger.info(f'kernel_time_window: {kernel_time_window}')
+    logger.info(f'kernel_space_window: {kernel_space_window}')
     # Model & optimizer
     model = AdaptiveSmoothing(kernel_time_window, kernel_space_window, dx, dt,
                               init_tau= 15.0, init_delta= 0.15, 
@@ -301,6 +320,7 @@ def calib(lane, runid):
 
     num_epochs = 1000
     best_val_rmse = float('inf')
+    params_list = []
 
     # Training loop
     for epoch in range(1, num_epochs+1):
@@ -330,12 +350,8 @@ def calib(lane, runid):
 
         if val_rmse.item() < best_val_rmse:
             best_val_rmse = val_rmse.item()
-            # only save the 6 parameters of the model
-            # Create directory if it doesn't exist
-            if not os.path.exists(f'../model/{runid}'):
-                os.makedirs(f'../model/{runid}')
             # Save the best model parameters
-            best_model_path = f'../model/{runid}/best_model_lane{lane}.pt'
+            best_model_path = os.path.join(model_dir, f'best_model_lane{lane}.pt')
             torch.save({
                 'tau': model.tau,
                 'delta': model.delta,
@@ -344,12 +360,9 @@ def calib(lane, runid):
                 'v_thr': model.v_thr,
                 'v_delta': model.v_delta
             }, best_model_path)
-        # save hyperparameters to logs/ before run the calibration
-        if not os.path.exists('../logs/calibration'):
-            os.makedirs('../logs/calibration')
+            
         if epoch % 10 == 0 or epoch == 1:
-            print(f"Epoch {epoch:3d} — Train RMSE: {loss.item():.4f} — Val RMSE: {val_rmse.item():.4f}")
-            # save all the parameters to a jason file as well
+            logger.info(f"Epoch {epoch:3d} — Train RMSE: {loss.item():.4f} — Val RMSE: {val_rmse.item():.4f}")
             # Save all model parameters to JSON, appending each epoch's params to a list
             params = {
                 'epoch': epoch,
@@ -362,59 +375,64 @@ def calib(lane, runid):
                 'train_rmse': loss.item(),
                 'val_rmse': val_rmse.item()
             }
-
-            # Create directory if it doesn't exist
-            if not os.path.exists(f'../logs/calibration/{runid}'):
-                os.makedirs(f'../logs/calibration/{runid}')
-            # Save parameters to a JSON file
-            params_file = f'../logs/calibration/{runid}/params_history_lane{lane}.json'
-            if os.path.exists(params_file):
-                with open(params_file, 'r') as f:
-                    params_list = json.load(f)
-            else:
-                params_list = []
             params_list.append(params)
+            
+            # Save parameters to a JSON file (overwrite with updated list)
+            params_file = os.path.join(log_dir, f'params_history_lane{lane}.json')
             with open(params_file, 'w') as f:
                 json.dump(params_list, f, indent=4)
+
         if epoch % 100 == 0 or epoch == 1:
-            print(f"tau: {model.tau.item():.2f}, delta: {model.delta.item():.2f}, "
+            logger.info(f"tau: {model.tau.item():.2f}, delta: {model.delta.item():.2f}, "
                   f"c_cong: {model.c_cong.item():.2f}, c_free: {model.c_free.item():.2f}, "
                   f"v_thr: {model.v_thr.item():.2f}, v_delta: {model.v_delta.item():.2f}")
-    print(f"\nBest Validation RMSE: {best_val_rmse:.4f}")
-    print(f"Best model saved at {best_model_path}")
+    
+    logger.info(f"\nBest Validation RMSE: {best_val_rmse:.4f}")
+    if 'best_model_path' in locals():
+        logger.info(f"Best model saved at {best_model_path}")
 
 def main():
     import time
     import os
     # use the runid based on current time
     runid = generate_runid()
-    print("Run ID:", runid)
-    # Create a log directory for this run
-    log_dir = f'../logs/calibration/{runid}'
-    os.makedirs(log_dir, exist_ok=True)
-    log_path = os.path.join(log_dir, 'calibration_log.txt')
-
-    # Open the log file once and append entries for each lane
-    with open(log_path, 'w') as lf:
-        lf.write(f"Run ID: {runid}\n")
-        for lane in range(1, 5):
-            start_time = time.time()
-            msg = f"Calibrating lane {lane}..."
-            print(msg)
-            lf.write(msg + "\n")
-
-            calib(lane, runid)
-
+    
+    # Setup directories
+    base_log_dir = f'../logs/calibration/{runid}'
+    base_model_dir = f'../model/{runid}'
+    os.makedirs(base_log_dir, exist_ok=True)
+    os.makedirs(base_model_dir, exist_ok=True)
+    
+    # Setup Logging
+    log_file = os.path.join(base_log_dir, 'calibration_log.txt')
+    
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s [%(levelname)s] %(message)s',
+        handlers=[
+            logging.FileHandler(log_file),
+            logging.StreamHandler()
+        ]
+    )
+    logger = logging.getLogger(__name__)
+    
+    logger.info(f"Run ID: {runid}")
+    
+    for lane in range(1, 5):
+        start_time = time.time()
+        logger.info(f"Calibrating lane {lane}...")
+        
+        for date_id in range(0, 5):  # Calibrate on dates 1 to 5
+            logger.info(f"  Using date index {date_id} for calibration.")
+            
+            calib(lane, runid, date_id, base_log_dir, base_model_dir)
+            
             end_time = time.time()
             elapsed = end_time - start_time
-            msg2 = f"Calibration time for lane {lane}: {elapsed:.2f} seconds"
-            msg3 = f"Finished calibrating lane {lane}."
-            print(msg2)
-            print(msg3)
-            lf.write(msg2 + "\n")
-            lf.write(msg3 + "\n")
-            lf.write("\n")
-    print(f"All lanes calibrated. Logs saved to {log_path}")
+            logger.info(f"Calibration time for lane {lane} and date {date_id}: {elapsed:.2f} seconds")
+            logger.info(f"Finished calibrating lane {lane} and date {date_id}.\n")
+
+    logger.info(f"All lanes calibrated. Logs saved to {log_file}")
 
 if __name__ == "__main__":
     main()
