@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 
-def fft_four_convs(Dp, Mp, k_cong, k_free, eps=1e-6, use_ortho=True):
+def fft_four_convs(Dp, Mp, k_cong, k_free, use_ortho=True):
     """
     Compute via FFT:
         sum_cong = conv2d(Dp, k_cong)
@@ -66,10 +66,6 @@ def fft_four_convs(Dp, Mp, k_cong, k_free, eps=1e-6, use_ortho=True):
     N_cong   = z1[..., Kh-1:Kh-1+oh, Kw-1:Kw-1+ow]
     N_free   = z2[..., Kh-1:Kh-1+oh, Kw-1:Kw-1+ow]
 
-    # ——— optional epsilon to counts to avoid zero division downstream ———
-    N_cong = N_cong + eps
-    N_free = N_free + eps
-
     return sum_cong, N_cong, sum_free, N_free
 
 class AdaptiveSmoothing(nn.Module):
@@ -106,7 +102,7 @@ class AdaptiveSmoothing(nn.Module):
         self.v_delta = nn.Parameter(torch.tensor(init_v_delta))
 
     def forward(self, raw_data: torch.Tensor):
-        # Ensure input is 4D: (B, C, T, X)
+        # Ensure input is 4D: (B, C, H, W) where H=space, W=time
         if raw_data.ndim == 2:
             raw_data = raw_data.unsqueeze(0).unsqueeze(0)
         elif raw_data.ndim == 3:
@@ -143,20 +139,45 @@ class AdaptiveSmoothing(nn.Module):
         # use FFT to compute the convolutions
         sum_cong, N_cong, sum_free, N_free = fft_four_convs(Dp, Mp, k_cong, k_free)
 
-        v_cong = sum_cong / N_cong
-        v_free = sum_free / N_free
+        # Define minimum weight threshold as fraction of the center kernel weight
+        # The center of the kernel (where the point being estimated is located) has weight 1.0
+        # We require at least some fraction of nearby data to have meaningful contribution
+        # Using the center weight as reference makes this adaptive to different tau/delta values
+        center_weight = 1.0  # exp(0) = 1 at the center of the kernel
+        min_weight_fraction = 0.001  # require at least 0.1% of center weight coverage
+        min_weight_threshold = min_weight_fraction * center_weight
+        
+        # Create validity masks based on whether enough data contributes to the estimate
+        valid_cong = (N_cong > min_weight_threshold).float()
+        valid_free = (N_free > min_weight_threshold).float()
+        
+        # Add small epsilon only where we have valid data to avoid division by zero
+        eps = 1e-12
+        N_cong_safe = N_cong + eps
+        N_free_safe = N_free + eps
+
+        v_cong = sum_cong / N_cong_safe
+        v_free = sum_free / N_free_safe
+        
         v_min = torch.min(v_cong, v_free)
         w = 0.5 * (1 + torch.tanh((self.v_thr - v_min) / self.v_delta))
         v = w * v_cong + (1 - w) * v_free
 
-        valid_cong = (N_cong > 0).float()
-        valid_free = (N_free > 0).float()
-        # if no cong data → use free; if no free data → use cong
-        v = valid_cong*valid_free*v + (1-valid_cong)*v_free + (1-valid_free)*v_cong
-        # check if there's nan if so print
-        if torch.isnan(v).any():
-            print("Warning! NaN detected in output")
-            print(N_cong)
+        # Handle cases with insufficient data:
+        # - If both have valid data: use weighted combination
+        # - If only cong has valid data: use v_cong
+        # - If only free has valid data: use v_free  
+        # - If neither has valid data: output NaN
+        both_valid = valid_cong * valid_free
+        only_cong = valid_cong * (1 - valid_free)
+        only_free = valid_free * (1 - valid_cong)
+        neither_valid = (1 - valid_cong) * (1 - valid_free)
+        
+        v = both_valid * v + only_cong * v_cong + only_free * v_free
+        
+        # Set output to NaN where neither kernel has sufficient valid data
+        v = torch.where(neither_valid > 0.5, torch.tensor(float('nan'), device=v.device, dtype=v.dtype), v)
+        
         # print size of v   
         # print('v size:', v.size())
         return v.squeeze(1)
