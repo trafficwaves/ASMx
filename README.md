@@ -9,7 +9,7 @@ This repository contains the data and code for the paper: Calibrating Adaptive S
 ```
 ASMx/
 ├── calibration/    # Calibration scripts and tools
-├── data/           # Datasets for experiments
+├── data/           # Datasets for experiments (see data/README.md for the data spec)
 ├── evaluation/     # Evaluation scripts and metrics
 ├── figures/        # Generated figures and plots
 ├── logs/           # Log files from runs
@@ -62,9 +62,9 @@ The log files from the calibration are stored in the `logs/calibration` director
 
 All data required for reproducing the experiments—including raw records from the queried database, preprocessed data, and the matrix data used as model input—are provided in this repository. All code and experimental results are also included to ensure full reproducibility. For any questions or further assistance, please contact us.
 
-## ⚠️ Limitation: Lack of Data Standard
+## 📑 Data Documentation
 
-Currently, the dataset provided in this repository lacks a unified data standard, and some meta-data is incomplete. As the primary goal of this submission is to share the implementation of the Adaptive Smoothing Method (ASM), we acknowledge this limitation and plan to recommend a standardized format for processed data in future updates. We welcome feedback from users to help improve and iterate on the data standard moving forward.
+The contents of every file under `data/`, the meaning of each column, units, and the pipeline that produces them are documented in [data/README.md](data/README.md). It covers the three pipeline stages — `raw_record/`, `raw_data/`, `processed_data/` — for both the RDS detector data and the motion-based ground truth, along with the demonstration assets at the root of `data/`. We welcome feedback from users to help improve and iterate on the data standard moving forward.
 
 ## License
 
@@ -74,4 +74,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 This project is maintained by the following contributors:
 
-- [Anonymous for review process](https://github.com/yourusername)
+- Junyi Ji, Vanderbilt University
