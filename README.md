@@ -10,6 +10,7 @@ This repository contains the data and code for the paper: Calibrating Adaptive S
 ASMx/
 ├── calibration/    # Calibration scripts and tools
 ├── data/           # Datasets for experiments (see data/README.md for the data spec)
+├── end-to-end/     # End-to-end reproducibility scripts + workflow docs (see end-to-end/README.md)
 ├── evaluation/     # Evaluation scripts and metrics
 ├── figures/        # Generated figures and plots
 ├── logs/           # Log files from runs
@@ -31,17 +32,32 @@ ASMx/
 
 ## ⚙️ Environment Setup
 
-All dependencies are listed in `environment.yml`.  
-To create the environment:
+We use [`uv`](https://docs.astral.sh/uv/) (Astral's fast Python package manager) as the canonical way to manage the environment. The legacy `environment.yml` (conda) is kept for users who prefer conda but is no longer authoritative.
+
+### Option A — `uv` (recommended)
+
+```bash
+# one-time: install uv (skip if `uv --version` works)
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# from repository root: materialize .venv from pyproject.toml + uv.lock
+uv sync
+```
+
+Run any Python entry point through `uv run` so the project venv is used regardless of shell state:
+
+```bash
+uv run python production/ASMxRDS.py
+uv run jupyter lab        # to open the visualization/ notebooks interactively
+```
+
+The end-to-end pipeline calls `uv sync` automatically before each stage — see [end-to-end/README.md](end-to-end/README.md).
+
+### Option B — conda (legacy)
 
 ```bash
 conda env create -f environment.yml
-```
-
-To update the environment file with your current packages:
-
-```bash
-conda env export --no-builds > environment.yml
+conda activate ASMx
 ```
 
 ---
@@ -53,6 +69,15 @@ To reproduce the figures in the paper, you can run the Jupyter notebooks located
 For example, to reproduce Figure 1, you would run `visualization/figure_1.ipynb`.
 
 Make sure to have the environment set up as described above before running the notebooks.
+
+## 🔁 End-to-end reproducibility (preprocessing → evaluation)
+
+For a complete, ordered pipeline — raw record → cleaned data → matrices → calibration → evaluation → figures — see [end-to-end/README.md](end-to-end/README.md). That document spells out every command, the exact directory each script must be invoked from, the inputs and outputs of each stage, and expected runtimes. A one-line master runner is provided:
+
+```bash
+bash end-to-end/run_pipeline.sh           # run every stage
+bash end-to-end/run_pipeline.sh calibrate # or any single stage group
+```
 
 ## 🧾 Credibility of the Computational Experiments
 

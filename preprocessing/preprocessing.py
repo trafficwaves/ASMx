@@ -23,17 +23,17 @@ def fill_space_time_matrix(raw_data, dx = 0.1, dt = 10, lane = 1, data_type = 's
     return matrix
 
 
-val = pd.read_csv('dates.csv')
+val = pd.read_csv('../dates.csv')
 dates = val.date.tolist()
 for lane in range(1, 5):
     for date in dates:
         print('date:', date)
-        raw_data = pd.read_csv(f'data/raw_data/rds/{date}.csv', low_memory=False)
+        raw_data = pd.read_csv(f'../data/raw_data/rds/{date}.csv', low_memory=False)
         speed = fill_space_time_matrix(raw_data, dx = 0.02, dt = 4, lane = lane, data_type = 'speed')
         output = speed.T.values.copy()
         output = output.astype(np.float32)
         print(f'lane {lane}, {date} output shape: {output.shape}')
-        output_dir = f'data/processed_data/rds/lane{lane}'
+        output_dir = f'../data/processed_data/rds/lane{lane}'
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
         np.save(f'{output_dir}/{date}.npy', output)

@@ -1,0 +1,258 @@
+
+[1;34m[03:07:33][0m ASMx pipeline RUNID=20260529_030733   stage=all   uv=uv 0.10.11
+
+[1;34m[03:07:33][0m Master log: /home/junyi/ASMx/logs/end-to-end/20260529_030733/00_pipeline.log
+
+[1;34m[03:07:33][0m ▶ START 00_uv_sync — logging to logs/end-to-end/20260529_030733/00_uv_sync.log
+Resolved 139 packages in 0.79ms
+Checked 134 packages in 1ms
+
+[1;34m[03:07:33][0m ✔ DONE  00_uv_sync (0s)
+
+[1;34m[03:07:33][0m ▶ START 01_rds_raw_to_clean — logging to logs/end-to-end/20260529_030733/01_rds_raw_to_clean.log
+processing the data on 2024-07-08
+processing the data on 2024-07-09
+processing the data on 2024-07-10
+processing the data on 2024-07-11
+processing the data on 2024-07-12
+
+[1;34m[03:08:45][0m ✔ DONE  01_rds_raw_to_clean (72s)
+
+[1;34m[03:08:45][0m ▶ START 02_rds_clean_to_matrix — logging to logs/end-to-end/20260529_030733/02_rds_clean_to_matrix.log
+date: 2024-07-08
+lane 1, 2024-07-08 output shape: (200, 3600)
+date: 2024-07-09
+lane 1, 2024-07-09 output shape: (200, 3600)
+date: 2024-07-10
+lane 1, 2024-07-10 output shape: (200, 3600)
+date: 2024-07-11
+lane 1, 2024-07-11 output shape: (200, 3600)
+date: 2024-07-12
+lane 1, 2024-07-12 output shape: (200, 3600)
+date: 2024-07-08
+lane 2, 2024-07-08 output shape: (200, 3600)
+date: 2024-07-09
+lane 2, 2024-07-09 output shape: (200, 3600)
+date: 2024-07-10
+lane 2, 2024-07-10 output shape: (200, 3600)
+date: 2024-07-11
+lane 2, 2024-07-11 output shape: (200, 3600)
+date: 2024-07-12
+lane 2, 2024-07-12 output shape: (200, 3600)
+date: 2024-07-08
+lane 3, 2024-07-08 output shape: (200, 3600)
+date: 2024-07-09
+lane 3, 2024-07-09 output shape: (200, 3600)
+date: 2024-07-10
+lane 3, 2024-07-10 output shape: (200, 3600)
+date: 2024-07-11
+lane 3, 2024-07-11 output shape: (200, 3600)
+date: 2024-07-12
+lane 3, 2024-07-12 output shape: (200, 3600)
+date: 2024-07-08
+lane 4, 2024-07-08 output shape: (200, 3600)
+date: 2024-07-09
+lane 4, 2024-07-09 output shape: (200, 3600)
+date: 2024-07-10
+lane 4, 2024-07-10 output shape: (200, 3600)
+date: 2024-07-11
+lane 4, 2024-07-11 output shape: (200, 3600)
+date: 2024-07-12
+lane 4, 2024-07-12 output shape: (200, 3600)
+
+[1;34m[03:09:13][0m ✔ DONE  02_rds_clean_to_matrix (28s)
+
+[1;34m[03:09:13][0m ▶ START 03_motion_to_matrix — logging to logs/end-to-end/20260529_030733/03_motion_to_matrix.log
+data shape: (200, 3600)
+Execution time: 0.94 seconds
+data shape: (200, 3600)
+Execution time: 0.92 seconds
+data shape: (200, 3600)
+Execution time: 0.91 seconds
+data shape: (200, 3600)
+Execution time: 1.03 seconds
+data shape: (200, 3600)
+Execution time: 0.91 seconds
+data shape: (200, 3600)
+Execution time: 0.91 seconds
+data shape: (200, 3600)
+Execution time: 0.94 seconds
+data shape: (200, 3600)
+Execution time: 0.90 seconds
+data shape: (200, 3600)
+Execution time: 0.90 seconds
+data shape: (200, 3600)
+Execution time: 0.90 seconds
+data shape: (200, 3600)
+Execution time: 0.90 seconds
+data shape: (200, 3600)
+Execution time: 0.97 seconds
+data shape: (200, 3600)
+Execution time: 0.92 seconds
+data shape: (200, 3600)
+Execution time: 0.90 seconds
+data shape: (200, 3600)
+Execution time: 0.91 seconds
+data shape: (200, 3600)
+Execution time: 0.90 seconds
+data shape: (200, 3600)
+Execution time: 0.90 seconds
+data shape: (200, 3600)
+Execution time: 0.90 seconds
+data shape: (200, 3600)
+Execution time: 0.90 seconds
+data shape: (200, 3600)
+Execution time: 0.90 seconds
+
+[1;34m[03:09:35][0m ✔ DONE  03_motion_to_matrix (22s)
+
+[1;34m[03:09:35][0m ▶ START 04a_train_single_date — logging to logs/end-to-end/20260529_030733/04a_train_single_date.log
+Run ID: 20260529_030936
+Calibrating lane 1...
+kernel_time_window: 14400.0
+kernel_space_window: 4.0
+
+--- Computational Performance Benchmark ---
+Total Parameters: 6
+FLOPs (est): 6.77e+10
+MACs (est): 3.38e+10
+Avg Inference Time: 242.66 ms
+Throughput: 4.12 inferences/sec (batch size 1)
+Memory footprint tracking requires CUDA.
+-------------------------------------------
+
+Epoch   1 — Train RMSE: 9.9986 — Val RMSE: 9.9634
+tau: 14.90, delta: 0.05, c_cong: 9.40, c_free: -43.60, v_thr: 37.40, v_delta: 12.30
+Epoch  10 — Train RMSE: 10.3351 — Val RMSE: 10.2615
+Epoch  20 — Train RMSE: 9.4470 — Val RMSE: 9.3826
+Epoch  30 — Train RMSE: 9.1015 — Val RMSE: 8.9084
+Epoch  40 — Train RMSE: 9.0727 — Val RMSE: 9.0668
+Epoch  50 — Train RMSE: 8.9076 — Val RMSE: 8.8775
+Epoch  60 — Train RMSE: 8.8128 — Val RMSE: 8.8091
+Epoch  70 — Train RMSE: 8.7681 — Val RMSE: 8.7672
+Epoch  80 — Train RMSE: 8.7401 — Val RMSE: 8.7649
+Epoch  90 — Train RMSE: 8.7603 — Val RMSE: 8.7584
+Epoch 100 — Train RMSE: 8.7753 — Val RMSE: 8.7741
+tau: 7.28, delta: 0.12, c_cong: 12.32, c_free: -49.17, v_thr: 42.62, v_delta: 7.82
+Epoch 110 — Train RMSE: 8.7314 — Val RMSE: 8.7217
+Epoch 120 — Train RMSE: 8.7358 — Val RMSE: 8.7361
+Epoch 130 — Train RMSE: 8.7195 — Val RMSE: 8.7194
+Epoch 140 — Train RMSE: 8.7188 — Val RMSE: 8.7187
+Epoch 150 — Train RMSE: 8.7182 — Val RMSE: 8.7181
+Epoch 160 — Train RMSE: 8.7176 — Val RMSE: 8.7175
+Epoch 170 — Train RMSE: 8.7170 — Val RMSE: 8.7170
+Epoch 180 — Train RMSE: 8.7165 — Val RMSE: 8.7164
+Epoch 190 — Train RMSE: 8.7160 — Val RMSE: 8.7159
+Epoch 200 — Train RMSE: 8.7155 — Val RMSE: 8.7154
+tau: 6.72, delta: 0.10, c_cong: 12.32, c_free: -50.81, v_thr: 44.64, v_delta: 8.60
+Epoch 210 — Train RMSE: 8.7150 — Val RMSE: 8.7150
+Epoch 220 — Train RMSE: 8.7146 — Val RMSE: 8.7146
+Epoch 230 — Train RMSE: 8.7144 — Val RMSE: 8.7143
+Epoch 240 — Train RMSE: 8.7141 — Val RMSE: 8.7141
+Epoch 250 — Train RMSE: 8.7139 — Val RMSE: 8.7139
+Epoch 260 — Train RMSE: 8.7138 — Val RMSE: 8.7138
+Epoch 270 — Train RMSE: 8.7136 — Val RMSE: 8.7136
+Epoch 280 — Train RMSE: 8.7135 — Val RMSE: 8.7135
+Epoch 290 — Train RMSE: 8.7130 — Val RMSE: 8.7129
+Epoch 300 — Train RMSE: 8.7127 — Val RMSE: 8.7127
+tau: 6.72, delta: 0.10, c_cong: 12.24, c_free: -50.81, v_thr: 45.85, v_delta: 9.26
+Epoch 310 — Train RMSE: 8.7125 — Val RMSE: 8.7125
+Epoch 320 — Train RMSE: 8.7124 — Val RMSE: 8.7124
+Epoch 330 — Train RMSE: 8.7123 — Val RMSE: 8.7123
+Epoch 340 — Train RMSE: 8.7122 — Val RMSE: 8.7121
+Epoch 350 — Train RMSE: 8.7120 — Val RMSE: 8.7120
+Epoch 360 — Train RMSE: 8.7119 — Val RMSE: 8.7119
+Epoch 370 — Train RMSE: 8.7118 — Val RMSE: 8.7118
+Epoch 380 — Train RMSE: 8.7117 — Val RMSE: 8.7117
+Epoch 390 — Train RMSE: 8.7117 — Val RMSE: 8.7116
+Epoch 400 — Train RMSE: 8.7116 — Val RMSE: 8.7116
+tau: 6.72, delta: 0.10, c_cong: 12.24, c_free: -50.40, v_thr: 46.85, v_delta: 9.68
+Epoch 410 — Train RMSE: 8.7115 — Val RMSE: 8.7115
+Epoch 420 — Train RMSE: 8.7114 — Val RMSE: 8.7114
+Epoch 430 — Train RMSE: 8.7113 — Val RMSE: 8.7113
+Epoch 440 — Train RMSE: 8.7113 — Val RMSE: 8.7113
+Epoch 450 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 460 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 470 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 480 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 490 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 500 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+tau: 6.72, delta: 0.10, c_cong: 12.24, c_free: -50.40, v_thr: 47.42, v_delta: 9.93
+Epoch 510 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 520 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 530 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 540 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 550 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 560 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 570 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 580 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 590 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 600 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+tau: 6.72, delta: 0.10, c_cong: 12.24, c_free: -50.40, v_thr: 47.50, v_delta: 9.98
+Epoch 610 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 620 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 630 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 640 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 650 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 660 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 670 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 680 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 690 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 700 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+tau: 6.72, delta: 0.10, c_cong: 12.24, c_free: -50.40, v_thr: 47.57, v_delta: 10.03
+Epoch 710 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 720 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 730 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 740 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 750 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 760 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 770 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 780 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 790 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 800 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+tau: 6.73, delta: 0.10, c_cong: 12.24, c_free: -50.40, v_thr: 47.64, v_delta: 10.07
+Epoch 810 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 820 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 830 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 840 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 850 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 860 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 870 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 880 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 890 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 900 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+tau: 6.73, delta: 0.10, c_cong: 12.24, c_free: -50.40, v_thr: 47.70, v_delta: 10.11
+Epoch 910 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 920 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 930 — Train RMSE: 8.7110 — Val RMSE: 8.7110
+Epoch 940 — Train RMSE: 8.7110 — Val RMSE: 8.7110
+Epoch 950 — Train RMSE: 8.7110 — Val RMSE: 8.7110
+Epoch 960 — Train RMSE: 8.7110 — Val RMSE: 8.7110
+Epoch 970 — Train RMSE: 8.7110 — Val RMSE: 8.7110
+Epoch 980 — Train RMSE: 8.7110 — Val RMSE: 8.7110
+Epoch 990 — Train RMSE: 8.7110 — Val RMSE: 8.7110
+Epoch 1000 — Train RMSE: 8.7110 — Val RMSE: 8.7110
+tau: 6.73, delta: 0.10, c_cong: 12.24, c_free: -50.40, v_thr: 47.75, v_delta: 10.14
+
+Best Validation RMSE: 8.7110
+Best model saved at ../model/20260529_030936/best_model_lane1.pt
+Calibration time for lane 1: 777.69 seconds
+Finished calibrating lane 1.
+Calibrating lane 2...
+kernel_time_window: 14400.0
+kernel_space_window: 4.0
+
+--- Computational Performance Benchmark ---
+Total Parameters: 6
+FLOPs (est): 6.77e+10
+MACs (est): 3.38e+10
+Avg Inference Time: 253.22 ms
+Throughput: 3.95 inferences/sec (batch size 1)
+Memory footprint tracking requires CUDA.
+-------------------------------------------
+
+Epoch   1 — Train RMSE: 8.7493 — Val RMSE: 8.7515
+tau: 14.90, delta: 0.05, c_cong: 9.40, c_free: -43.60, v_thr: 37.40, v_delta: 12.30
+Epoch  10 — Train RMSE: 9.1259 — Val RMSE: 9.0601
+Epoch  20 — Train RMSE: 8.1730 — Val RMSE: 8.0900
+Epoch  30 — Train RMSE: 7.8383 — Val RMSE: 7.8317
