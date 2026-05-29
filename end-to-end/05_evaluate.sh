@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Stage 5 — Quantitative evaluation: IoU of congested contours vs. ground truth.
 #
-# Note: evaluation/IOU.ipynb hard-codes a specific best-model path
-# (model/20250607_221107/best_model_lane{lane}.pt). If you want to evaluate
-# the RUN_ID you just produced, edit that path in the notebook first or
-# pass --execute with a parameterised papermill run.
+# Note: evaluation/IOU.ipynb auto-discovers the most recent calibrated model
+# by globbing ../model/*/best_model_lane{lane}.pt and picking the
+# lexicographically latest match (timestamp-named dirs sort correctly).
+# Run stage 4 (calibration) before this stage so a model is available.
 #
 # Run from anywhere; environment is managed by `uv`:
 #   bash end-to-end/05_evaluate.sh

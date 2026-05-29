@@ -1,0 +1,14 @@
+
+[1;34m[18:04:24][0m ASMx pipeline RUNID=20260529_180424   stage=all   uv=uv 0.10.11
+
+[1;34m[18:04:24][0m Master log: /home/junyi/ASMx/logs/end-to-end/20260529_180424/00_pipeline.log
+
+[1;34m[18:04:24][0m ▶ START 00_uv_sync — logging to logs/end-to-end/20260529_180424/00_uv_sync.log
+Resolved 139 packages in 0.73ms
+Checked 134 packages in 1ms
+
+[1;34m[18:04:24][0m ✔ DONE  00_uv_sync (0s)
+
+[1;34m[18:04:24][0m ▶ START 01_rds_raw_to_clean — logging to logs/end-to-end/20260529_180424/01_rds_raw_to_clean.log
+processing the data on 2024-07-08
+processing the data on 2024-07-09
