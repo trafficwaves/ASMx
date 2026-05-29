@@ -79,6 +79,67 @@ bash end-to-end/run_pipeline.sh           # run every stage
 bash end-to-end/run_pipeline.sh calibrate # or any single stage group
 ```
 
+## 🧪 Experimental Settings
+
+For full reproducibility, the parameters, random seeds, and discretization constants used in our experiments are listed below. They match the values hard-coded in [calibration/train.py](calibration/train.py), [calibration/train_day_to_day.py](calibration/train_day_to_day.py), and [calibration/seeds.py](calibration/seeds.py); change them there if you wish to re-run with different settings.
+
+### Random seeds
+
+| Script | Seed(s) | Purpose |
+|---|---|---|
+| [calibration/train.py:15](calibration/train.py#L15) | `42` | Single-day calibration (main result) |
+| [calibration/train_day_to_day.py:17](calibration/train_day_to_day.py#L17) | `42` | Day-to-day generalization runs |
+| [calibration/seeds.py:137](calibration/seeds.py#L137) | `1, 2, …, 9` | Seed-sensitivity analysis (`sensitivity_results.csv`) |
+
+All seeds are applied to NumPy, Python `random`, and PyTorch (CPU and CUDA via `torch.cuda.manual_seed_all`). Matmul precision is set to `medium` (`torch.set_float32_matmul_precision('medium')`).
+
+### Spatio-temporal discretization
+
+| Symbol | Value | Unit | Meaning |
+|---|---|---|---|
+| `dx` | `0.02` | mile | Spatial cell width |
+| `dt` | `4.0` | sec | Temporal cell width |
+| `kernel_time_window` | `T · dt` | sec | Set from matrix shape at runtime |
+| `kernel_space_window` | `X · dx` | mile | Set from matrix shape at runtime |
+
+### Adaptive-smoothing model — initial parameters
+
+Used to construct `AdaptiveSmoothing(...)` at the start of every calibration run.
+
+| Parameter | Init value | Unit | Description |
+|---|---|---|---|
+| `tau` | `15.0` | sec | Temporal kernel bandwidth |
+| `delta` | `0.15` | mile | Spatial kernel bandwidth |
+| `c_cong` | `9.3` | mph | Congested wave speed |
+| `c_free` | `-43.5` | mph | Free-flow wave speed |
+| `v_thr` | `37.3` | mph | Regime-transition speed threshold |
+| `v_delta` | `12.4` | mph | Regime-transition smoothing width |
+
+Per-epoch constraints applied in-place: `c_free ≥ -60` (clamped), and all six parameters are quantized to two decimals.
+
+### Optimization
+
+| Setting | Value |
+|---|---|
+| Optimizer | Adam |
+| Learning rate | `1e-1` |
+| Epochs | `1000` |
+| Loss | Weighted RMSE (see below) |
+| Lanes | `1, 2, 3, 4` (calibrated independently) |
+| Train/val date | `dates[1]` from [dates.csv](dates.csv) (i.e., `2024-07-09`) |
+| Device | CUDA if available, else CPU |
+
+The weighted RMSE up-weights low-speed (congested) samples to balance the loss surface:
+
+- `threshold = 15.0` mph — targets below this are up-weighted
+- `high_weight = 10.0` — multiplier applied to those samples
+
+For the optional combined loss (`combined_loss`), the RMSE/Wasserstein mixing coefficient is `alpha = 1.0` (i.e., pure RMSE by default).
+
+### Logging
+
+Each run is tagged with a timestamp `runid` (`YYYYMMDD_HHMMSS`); per-epoch parameter snapshots, train/val RMSE, and the best checkpoint are written under `logs/calibration/<runid>/` and `models/<runid>/`.
+
 ## 🧾 Credibility of the Computational Experiments
 
 The log files from the calibration are stored in the `logs/calibration` directory. Each experiment is recorded by the date and time it was run, and the log files are named accordingly. Log files are generated automatically based on your local machine time. When you run the code in `calibration/train.py`, the log files will be created in the `logs/calibration` directory.

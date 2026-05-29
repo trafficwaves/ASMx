@@ -604,38 +604,7 @@ are: \code{time\_unix\_fix} (snapped Unix seconds), \code{lane0\_speed}\dots
 \code{time\_unix} (raw Unix seconds before snapping).
 
 %---------------------------------------------------------------
-\section{Alignment with the paper}
-\label{sec:alignment}
-
-The table below cross-references the quantitative dataset descriptors in the
-paper (\filename{asm\_arxiv.pdf}, Sec.~3.1) against what is on disk.
-
-\begin{center}
-{\small
-\begin{tabularx}{\textwidth}{L{3.6cm} L{3.8cm} X}
-\toprule
-\textbf{In the paper} & \textbf{Value} & \textbf{Where on disk} \\
-\midrule
-I-24 MOTION testbed length              & 6.76~km                          & Spatial extent of \filename{raw\_record/motion/\dots}. \\
-I-24 SMART Corridor length              & 27.36~km                         & \filename{corridor\_data/rds/} (\S\ref{sec:corridor}). \\
-RDS aggregation interval                & 30~s                             & \code{time\_unix\_fix} snapping in \filename{raw\_data/rds/}. \\
-RDS sensor spacing                      & $\approx$483~m ($\approx$0.3~mi) & Distance between distinct \code{milemarker} values in \filename{raw\_record/rds/}. \\
-MOTION temporal resolution              & 4~s                              & $\Delta t = 4$~s on the processed grid (\S\ref{sec:processed}). \\
-MOTION spatial resolution               & 32~m ($\approx$0.02~mi)          & $\Delta x = 0.02$~mi on the processed grid (\S\ref{sec:processed}). \\
-Calibration window                      & 2024-07-09, 06:00--10:00 WB I-24 & \filename{processed\_data/\{rds,motion\}/lane*/2024-07-09.npy}, shape \code{(200, 3600)}. \\
-Cross-validation days (Sec.~3.4)        & 2024-07-08, -10, -11, -12        & Remaining four dates in \filename{processed\_data/}; canonical list in \filename{../dates.csv}. \\
-Figure~1 spatial window                 & MM~58.7 to MM~62.7               & \code{np.arange(58.7, 62.7, 0.02)} in \filename{preprocessing/preprocessing.py} $\to$ 200-cell axis. \\
-Figure~13 spatial window                & MM~53.3 to MM~70.1 (27.36~km)    & \filename{corridor\_data/rds/lane1/2024-07-09.npy}, shape \code{(840, 3600)}. \\
-Figure~14 spatial window                & I-95 NB, MM~115 to MM~130 (24.14~km) & \filename{I95speed.npy} and \filename{2025-04-09.csv}. \\
-\midrule
-\textbf{Speed unit in figures}          & km/h                             & On disk: \textbf{mph}. Figures convert via \code{MILE\_TO\_KM = 1.60934} inside \filename{visualization/*.ipynb}. \\
-\bottomrule
-\end{tabularx}
-}
-\end{center}
-
-%---------------------------------------------------------------
-\section{Common tasks (cookbook)}
+\section{Demos}
 \label{sec:cookbook}
 
 \subsection*{Load all five days for one lane}
