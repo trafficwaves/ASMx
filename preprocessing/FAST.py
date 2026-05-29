@@ -7,16 +7,15 @@ from datetime import timedelta
 from functools import reduce
 import matplotlib.pyplot as plt
 
+CDT = datetime.timezone(timedelta(hours=-5))
+
+
 def preprocess_raw_data(file_path):
     import datetime
     import pytz
     def time_trans(dt_str):
-        # Define the date-time string
-        # Convert the string to a datetime object in CDT
         dt = datetime.datetime.strptime(dt_str, '%Y-%m-%d %H:%M:%S')
-        #     cdt = pytz.timezone('America/Chicago')
-        #     dt = cdt.localize(dt)
-        # Convert to UTC and get the Unix timestamp
+        dt = dt.replace(tzinfo=CDT)
         unix_timestamp = dt.astimezone(pytz.UTC).timestamp()
         return unix_timestamp
     data = pd.read_csv(file_path)
@@ -24,12 +23,8 @@ def preprocess_raw_data(file_path):
 
 
 def time_trans(dt_str):
-    # Define the date-time string
-    # Convert the string to a datetime object in CDT
     dt = datetime.datetime.strptime(dt_str, '%Y-%m-%d %H:%M:%S')
-    #     cdt = pytz.timezone('America/Chicago')
-    #     dt = cdt.localize(dt)
-    # Convert to UTC and get the Unix timestamp
+    dt = dt.replace(tzinfo=CDT)
     unix_timestamp = dt.astimezone(pytz.UTC).timestamp()
     return unix_timestamp
 

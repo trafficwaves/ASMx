@@ -2,8 +2,14 @@
 __pycache__/ASMx.cpython-311.pyc
 *.pyc
 *.png
-*.pdf
+# *.pdf
 # figures/
 *.json
 *.pt
 test_july9_params.py
+
+# uv-managed environment
+.venv/
+.python-version
+
+asm_arxiv.pdf

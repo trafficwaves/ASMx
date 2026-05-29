@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import multiprocessing
 from multiprocessing import Pool
-import preprocessing.FAST as FAST
+import FAST
 import os
 import warnings
 warnings.filterwarnings("ignore")
@@ -46,7 +46,7 @@ def time_to_unix(time_str):
 def split_date(entry):
     return entry.split('.')[0]
 
-rds_data_path = 'data/raw_record/rds/'
+rds_data_path = '../data/raw_record/rds/'
 
 # # Check the files in the rds_data_path
 # entries = os.listdir(rds_data_path)
@@ -78,14 +78,14 @@ def process_entry(entry):
     end_time = time_to_unix(f'{date} 10:00:00')
     # convert the time to unix time
     processed_data = processed_data[(processed_data.time_unix_fix >= start_time) & (processed_data.time_unix_fix <= end_time)].reset_index(drop=True)
-    if not os.path.exists(f'data/raw_data/rds'):
-        os.makedirs(f'data/raw_data/rds')
-    processed_data.to_csv(f'data/raw_data/rds/{date}.csv', index=False)
+    if not os.path.exists(f'../data/raw_data/rds'):
+        os.makedirs(f'../data/raw_data/rds')
+    processed_data.to_csv(f'../data/raw_data/rds/{date}.csv', index=False)
 
 
 # Use multiprocessing to process the entries concurrently
 if __name__ == '__main__':
-    val = pd.read_csv('dates.csv')
+    val = pd.read_csv('../dates.csv')
     val_entries = val.date.tolist()
     # with Pool(multiprocessing.cpu_count()) as pool:
     #     pool.map(process_entry, val_entries)

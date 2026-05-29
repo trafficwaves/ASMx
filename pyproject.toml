@@ -1,0 +1,29 @@
+[project]
+name = "asmx"
+version = "0.1.0"
+description = "ASMx: Adaptive Smoothing Method for freeway traffic reconstruction"
+readme = "README.md"
+requires-python = ">=3.11,<3.13"
+license = { file = "LICENSE" }
+authors = [{ name = "Junyi Ji", email = "junyi.ji@vanderbilt.edu" }]
+
+# Runtime dependencies actually imported by the pipeline code.
+# (Conda system libs from environment.yml are not needed — wheels handle them.)
+dependencies = [
+    "numpy>=2.0,<3",
+    "pandas>=2.2",
+    "matplotlib>=3.8",
+    "scipy>=1.13",
+    "torch>=2.4",
+    "thop",
+    "pytz",
+    # Needed by run_pipeline.sh stages 5 & 6 (nbconvert --execute).
+    "jupyter",
+    "nbconvert",
+    "ipykernel",
+]
+
+[tool.uv]
+# Default index — Linux PyTorch wheels on PyPI ship with CUDA 12.x.
+# To force CPU-only, prepend `--extra-index-url https://download.pytorch.org/whl/cpu`
+# when running `uv sync`.
