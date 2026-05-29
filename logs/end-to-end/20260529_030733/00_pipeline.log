@@ -256,3 +256,5 @@ tau: 14.90, delta: 0.05, c_cong: 9.40, c_free: -43.60, v_thr: 37.40, v_delta: 12
 Epoch  10 — Train RMSE: 9.1259 — Val RMSE: 9.0601
 Epoch  20 — Train RMSE: 8.1730 — Val RMSE: 8.0900
 Epoch  30 — Train RMSE: 7.8383 — Val RMSE: 7.8317
+Epoch  40 — Train RMSE: 7.7798 — Val RMSE: 7.7746
+Epoch  50 — Train RMSE: 7.7347 — Val RMSE: 7.7318
