@@ -468,3 +468,5 @@ Epoch 560 — Train RMSE: 7.2367 — Val RMSE: 7.2367
 Epoch 570 — Train RMSE: 7.2349 — Val RMSE: 7.2367
 Epoch 580 — Train RMSE: 7.2349 — Val RMSE: 7.2349
 Epoch 590 — Train RMSE: 7.2367 — Val RMSE: 7.2349
+Epoch 600 — Train RMSE: 7.2367 — Val RMSE: 7.2367
+tau: 10.47, delta: 0.10, c_cong: 12.85, c_free: -60.00, v_thr: 37.17, v_delta: 8.69
