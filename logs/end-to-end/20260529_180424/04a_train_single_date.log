@@ -1,0 +1,522 @@
+Run ID: 20260529_180625
+Calibrating lane 1...
+kernel_time_window: 14400.0
+kernel_space_window: 4.0
+
+--- Computational Performance Benchmark ---
+Total Parameters: 6
+FLOPs (est): 6.77e+10
+MACs (est): 3.38e+10
+Avg Inference Time: 11.24 ms
+Throughput: 88.98 inferences/sec (batch size 1)
+Peak CUDA Memory: 1432.41 MB
+-------------------------------------------
+
+Epoch   1 — Train RMSE: 9.9986 — Val RMSE: 9.9634
+tau: 14.90, delta: 0.05, c_cong: 9.40, c_free: -43.60, v_thr: 37.40, v_delta: 12.30
+Epoch  10 — Train RMSE: 10.3351 — Val RMSE: 10.2615
+Epoch  20 — Train RMSE: 9.4470 — Val RMSE: 9.3826
+Epoch  30 — Train RMSE: 9.1015 — Val RMSE: 8.9084
+Epoch  40 — Train RMSE: 9.0727 — Val RMSE: 9.0668
+Epoch  50 — Train RMSE: 8.9076 — Val RMSE: 8.8775
+Epoch  60 — Train RMSE: 8.8128 — Val RMSE: 8.8091
+Epoch  70 — Train RMSE: 8.7681 — Val RMSE: 8.7672
+Epoch  80 — Train RMSE: 8.7401 — Val RMSE: 8.7649
+Epoch  90 — Train RMSE: 8.7603 — Val RMSE: 8.7584
+Epoch 100 — Train RMSE: 8.7753 — Val RMSE: 8.7741
+tau: 7.28, delta: 0.12, c_cong: 12.32, c_free: -49.17, v_thr: 42.62, v_delta: 7.82
+Epoch 110 — Train RMSE: 8.7314 — Val RMSE: 8.7217
+Epoch 120 — Train RMSE: 8.7358 — Val RMSE: 8.7361
+Epoch 130 — Train RMSE: 8.7195 — Val RMSE: 8.7194
+Epoch 140 — Train RMSE: 8.7188 — Val RMSE: 8.7187
+Epoch 150 — Train RMSE: 8.7182 — Val RMSE: 8.7181
+Epoch 160 — Train RMSE: 8.7176 — Val RMSE: 8.7175
+Epoch 170 — Train RMSE: 8.7170 — Val RMSE: 8.7170
+Epoch 180 — Train RMSE: 8.7165 — Val RMSE: 8.7164
+Epoch 190 — Train RMSE: 8.7160 — Val RMSE: 8.7159
+Epoch 200 — Train RMSE: 8.7155 — Val RMSE: 8.7154
+tau: 6.72, delta: 0.10, c_cong: 12.32, c_free: -50.81, v_thr: 44.64, v_delta: 8.60
+Epoch 210 — Train RMSE: 8.7150 — Val RMSE: 8.7150
+Epoch 220 — Train RMSE: 8.7146 — Val RMSE: 8.7146
+Epoch 230 — Train RMSE: 8.7144 — Val RMSE: 8.7144
+Epoch 240 — Train RMSE: 8.7142 — Val RMSE: 8.7141
+Epoch 250 — Train RMSE: 8.7140 — Val RMSE: 8.7139
+Epoch 260 — Train RMSE: 8.7138 — Val RMSE: 8.7138
+Epoch 270 — Train RMSE: 8.7136 — Val RMSE: 8.7136
+Epoch 280 — Train RMSE: 8.7135 — Val RMSE: 8.7135
+Epoch 290 — Train RMSE: 8.7129 — Val RMSE: 8.7128
+Epoch 300 — Train RMSE: 8.7127 — Val RMSE: 8.7127
+tau: 6.72, delta: 0.10, c_cong: 12.24, c_free: -50.81, v_thr: 45.84, v_delta: 9.26
+Epoch 310 — Train RMSE: 8.7125 — Val RMSE: 8.7125
+Epoch 320 — Train RMSE: 8.7124 — Val RMSE: 8.7124
+Epoch 330 — Train RMSE: 8.7123 — Val RMSE: 8.7123
+Epoch 340 — Train RMSE: 8.7122 — Val RMSE: 8.7122
+Epoch 350 — Train RMSE: 8.7121 — Val RMSE: 8.7120
+Epoch 360 — Train RMSE: 8.7119 — Val RMSE: 8.7119
+Epoch 370 — Train RMSE: 8.7118 — Val RMSE: 8.7118
+Epoch 380 — Train RMSE: 8.7117 — Val RMSE: 8.7117
+Epoch 390 — Train RMSE: 8.7117 — Val RMSE: 8.7116
+Epoch 400 — Train RMSE: 8.7116 — Val RMSE: 8.7116
+tau: 6.72, delta: 0.10, c_cong: 12.24, c_free: -50.40, v_thr: 46.84, v_delta: 9.67
+Epoch 410 — Train RMSE: 8.7115 — Val RMSE: 8.7115
+Epoch 420 — Train RMSE: 8.7114 — Val RMSE: 8.7114
+Epoch 430 — Train RMSE: 8.7114 — Val RMSE: 8.7113
+Epoch 440 — Train RMSE: 8.7113 — Val RMSE: 8.7113
+Epoch 450 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 460 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 470 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 480 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 490 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 500 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+tau: 6.72, delta: 0.10, c_cong: 12.24, c_free: -50.40, v_thr: 47.42, v_delta: 9.93
+Epoch 510 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 520 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 530 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 540 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 550 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 560 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 570 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 580 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 590 — Train RMSE: 8.7112 — Val RMSE: 8.7112
+Epoch 600 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+tau: 6.72, delta: 0.10, c_cong: 12.24, c_free: -50.40, v_thr: 47.50, v_delta: 9.98
+Epoch 610 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 620 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 630 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 640 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 650 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 660 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 670 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 680 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 690 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 700 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+tau: 6.72, delta: 0.10, c_cong: 12.24, c_free: -50.40, v_thr: 47.58, v_delta: 10.03
+Epoch 710 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 720 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 730 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 740 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 750 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 760 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 770 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 780 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 790 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 800 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+tau: 6.73, delta: 0.10, c_cong: 12.24, c_free: -50.40, v_thr: 47.65, v_delta: 10.07
+Epoch 810 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 820 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 830 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 840 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 850 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 860 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 870 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 880 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 890 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 900 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+tau: 6.73, delta: 0.10, c_cong: 12.24, c_free: -50.40, v_thr: 47.70, v_delta: 10.11
+Epoch 910 — Train RMSE: 8.7111 — Val RMSE: 8.7111
+Epoch 920 — Train RMSE: 8.7110 — Val RMSE: 8.7110
+Epoch 930 — Train RMSE: 8.7110 — Val RMSE: 8.7110
+Epoch 940 — Train RMSE: 8.7110 — Val RMSE: 8.7110
+Epoch 950 — Train RMSE: 8.7110 — Val RMSE: 8.7110
+Epoch 960 — Train RMSE: 8.7110 — Val RMSE: 8.7110
+Epoch 970 — Train RMSE: 8.7110 — Val RMSE: 8.7110
+Epoch 980 — Train RMSE: 8.7110 — Val RMSE: 8.7110
+Epoch 990 — Train RMSE: 8.7110 — Val RMSE: 8.7110
+Epoch 1000 — Train RMSE: 8.7110 — Val RMSE: 8.7110
+tau: 6.73, delta: 0.10, c_cong: 12.24, c_free: -50.40, v_thr: 47.75, v_delta: 10.14
+
+Best Validation RMSE: 8.7110
+Best model saved at ../model/20260529_180625/best_model_lane1.pt
+Calibration time for lane 1: 42.01 seconds
+Finished calibrating lane 1.
+Calibrating lane 2...
+kernel_time_window: 14400.0
+kernel_space_window: 4.0
+
+--- Computational Performance Benchmark ---
+Total Parameters: 6
+FLOPs (est): 6.77e+10
+MACs (est): 3.38e+10
+Avg Inference Time: 11.26 ms
+Throughput: 88.78 inferences/sec (batch size 1)
+Peak CUDA Memory: 1431.42 MB
+-------------------------------------------
+
+Epoch   1 — Train RMSE: 8.7493 — Val RMSE: 8.7515
+tau: 14.90, delta: 0.05, c_cong: 9.40, c_free: -43.60, v_thr: 37.40, v_delta: 12.30
+Epoch  10 — Train RMSE: 9.1259 — Val RMSE: 9.0601
+Epoch  20 — Train RMSE: 8.1730 — Val RMSE: 8.0900
+Epoch  30 — Train RMSE: 7.8383 — Val RMSE: 7.8317
+Epoch  40 — Train RMSE: 7.7798 — Val RMSE: 7.7746
+Epoch  50 — Train RMSE: 7.7347 — Val RMSE: 7.7318
+Epoch  60 — Train RMSE: 7.7068 — Val RMSE: 7.7041
+Epoch  70 — Train RMSE: 7.6817 — Val RMSE: 7.6794
+Epoch  80 — Train RMSE: 7.6626 — Val RMSE: 7.6611
+Epoch  90 — Train RMSE: 7.6497 — Val RMSE: 7.6483
+Epoch 100 — Train RMSE: 7.6373 — Val RMSE: 7.6363
+tau: 6.94, delta: 0.10, c_cong: 12.63, c_free: -48.90, v_thr: 41.58, v_delta: 7.96
+Epoch 110 — Train RMSE: 7.6301 — Val RMSE: 7.6298
+Epoch 120 — Train RMSE: 7.6291 — Val RMSE: 7.6291
+Epoch 130 — Train RMSE: 7.6298 — Val RMSE: 7.6297
+Epoch 140 — Train RMSE: 7.6310 — Val RMSE: 7.6307
+Epoch 150 — Train RMSE: 7.6295 — Val RMSE: 7.6294
+Epoch 160 — Train RMSE: 7.6298 — Val RMSE: 7.6291
+Epoch 170 — Train RMSE: 7.6286 — Val RMSE: 7.6285
+Epoch 180 — Train RMSE: 7.6285 — Val RMSE: 7.6285
+Epoch 190 — Train RMSE: 7.6281 — Val RMSE: 7.6304
+Epoch 200 — Train RMSE: 7.6283 — Val RMSE: 7.6283
+tau: 5.96, delta: 0.11, c_cong: 12.54, c_free: -49.32, v_thr: 42.54, v_delta: 7.87
+Epoch 210 — Train RMSE: 7.6304 — Val RMSE: 7.6304
+Epoch 220 — Train RMSE: 7.6281 — Val RMSE: 7.6281
+Epoch 230 — Train RMSE: 7.6280 — Val RMSE: 7.6281
+Epoch 240 — Train RMSE: 7.6280 — Val RMSE: 7.6302
+Epoch 250 — Train RMSE: 7.6281 — Val RMSE: 7.6281
+Epoch 260 — Train RMSE: 7.6303 — Val RMSE: 7.6302
+Epoch 270 — Train RMSE: 7.6280 — Val RMSE: 7.6279
+Epoch 280 — Train RMSE: 7.6282 — Val RMSE: 7.6282
+Epoch 290 — Train RMSE: 7.6301 — Val RMSE: 7.6300
+Epoch 300 — Train RMSE: 7.6280 — Val RMSE: 7.6279
+tau: 5.93, delta: 0.11, c_cong: 12.54, c_free: -49.31, v_thr: 42.89, v_delta: 8.07
+Epoch 310 — Train RMSE: 7.6282 — Val RMSE: 7.6282
+Epoch 320 — Train RMSE: 7.6301 — Val RMSE: 7.6300
+Epoch 330 — Train RMSE: 7.6280 — Val RMSE: 7.6300
+Epoch 340 — Train RMSE: 7.6280 — Val RMSE: 7.6279
+Epoch 350 — Train RMSE: 7.6279 — Val RMSE: 7.6279
+Epoch 360 — Train RMSE: 7.6303 — Val RMSE: 7.6278
+Epoch 370 — Train RMSE: 7.6303 — Val RMSE: 7.6303
+Epoch 380 — Train RMSE: 7.6279 — Val RMSE: 7.6279
+Epoch 390 — Train RMSE: 7.6281 — Val RMSE: 7.6280
+Epoch 400 — Train RMSE: 7.6280 — Val RMSE: 7.6280
+tau: 5.95, delta: 0.11, c_cong: 12.54, c_free: -49.31, v_thr: 42.99, v_delta: 8.15
+Epoch 410 — Train RMSE: 7.6279 — Val RMSE: 7.6280
+Epoch 420 — Train RMSE: 7.6301 — Val RMSE: 7.6300
+Epoch 430 — Train RMSE: 7.6301 — Val RMSE: 7.6302
+Epoch 440 — Train RMSE: 7.6279 — Val RMSE: 7.6278
+Epoch 450 — Train RMSE: 7.6280 — Val RMSE: 7.6280
+Epoch 460 — Train RMSE: 7.6280 — Val RMSE: 7.6280
+Epoch 470 — Train RMSE: 7.6279 — Val RMSE: 7.6280
+Epoch 480 — Train RMSE: 7.6302 — Val RMSE: 7.6301
+Epoch 490 — Train RMSE: 7.6301 — Val RMSE: 7.6302
+Epoch 500 — Train RMSE: 7.6279 — Val RMSE: 7.6278
+tau: 5.93, delta: 0.11, c_cong: 12.54, c_free: -49.30, v_thr: 43.07, v_delta: 8.21
+Epoch 510 — Train RMSE: 7.6278 — Val RMSE: 7.6301
+Epoch 520 — Train RMSE: 7.6279 — Val RMSE: 7.6279
+Epoch 530 — Train RMSE: 7.6279 — Val RMSE: 7.6300
+Epoch 540 — Train RMSE: 7.6279 — Val RMSE: 7.6278
+Epoch 550 — Train RMSE: 7.6278 — Val RMSE: 7.6277
+Epoch 560 — Train RMSE: 7.6278 — Val RMSE: 7.6277
+Epoch 570 — Train RMSE: 7.6278 — Val RMSE: 7.6277
+Epoch 580 — Train RMSE: 7.6278 — Val RMSE: 7.6277
+Epoch 590 — Train RMSE: 7.6278 — Val RMSE: 7.6277
+Epoch 600 — Train RMSE: 7.6278 — Val RMSE: 7.6302
+tau: 5.91, delta: 0.10, c_cong: 12.54, c_free: -49.29, v_thr: 43.16, v_delta: 8.26
+Epoch 610 — Train RMSE: 7.6278 — Val RMSE: 7.6301
+Epoch 620 — Train RMSE: 7.6302 — Val RMSE: 7.6302
+Epoch 630 — Train RMSE: 7.6301 — Val RMSE: 7.6299
+Epoch 640 — Train RMSE: 7.6299 — Val RMSE: 7.6279
+Epoch 650 — Train RMSE: 7.6279 — Val RMSE: 7.6279
+Epoch 660 — Train RMSE: 7.6279 — Val RMSE: 7.6279
+Epoch 670 — Train RMSE: 7.6279 — Val RMSE: 7.6279
+Epoch 680 — Train RMSE: 7.6279 — Val RMSE: 7.6279
+Epoch 690 — Train RMSE: 7.6279 — Val RMSE: 7.6278
+Epoch 700 — Train RMSE: 7.6278 — Val RMSE: 7.6301
+tau: 5.92, delta: 0.10, c_cong: 12.54, c_free: -49.29, v_thr: 43.16, v_delta: 8.27
+Epoch 710 — Train RMSE: 7.6301 — Val RMSE: 7.6301
+Epoch 720 — Train RMSE: 7.6301 — Val RMSE: 7.6299
+Epoch 730 — Train RMSE: 7.6299 — Val RMSE: 7.6279
+Epoch 740 — Train RMSE: 7.6279 — Val RMSE: 7.6279
+Epoch 750 — Train RMSE: 7.6279 — Val RMSE: 7.6279
+Epoch 760 — Train RMSE: 7.6279 — Val RMSE: 7.6279
+Epoch 770 — Train RMSE: 7.6279 — Val RMSE: 7.6279
+Epoch 780 — Train RMSE: 7.6279 — Val RMSE: 7.6278
+Epoch 790 — Train RMSE: 7.6278 — Val RMSE: 7.6300
+Epoch 800 — Train RMSE: 7.6300 — Val RMSE: 7.6300
+tau: 5.92, delta: 0.10, c_cong: 12.54, c_free: -49.29, v_thr: 43.18, v_delta: 8.29
+Epoch 810 — Train RMSE: 7.6301 — Val RMSE: 7.6299
+Epoch 820 — Train RMSE: 7.6299 — Val RMSE: 7.6279
+Epoch 830 — Train RMSE: 7.6279 — Val RMSE: 7.6279
+Epoch 840 — Train RMSE: 7.6279 — Val RMSE: 7.6279
+Epoch 850 — Train RMSE: 7.6279 — Val RMSE: 7.6279
+Epoch 860 — Train RMSE: 7.6279 — Val RMSE: 7.6278
+Epoch 870 — Train RMSE: 7.6278 — Val RMSE: 7.6278
+Epoch 880 — Train RMSE: 7.6278 — Val RMSE: 7.6301
+Epoch 890 — Train RMSE: 7.6301 — Val RMSE: 7.6301
+Epoch 900 — Train RMSE: 7.6301 — Val RMSE: 7.6299
+tau: 5.93, delta: 0.10, c_cong: 12.54, c_free: -49.29, v_thr: 43.22, v_delta: 8.32
+Epoch 910 — Train RMSE: 7.6299 — Val RMSE: 7.6278
+Epoch 920 — Train RMSE: 7.6278 — Val RMSE: 7.6399
+Epoch 930 — Train RMSE: 7.6279 — Val RMSE: 7.6278
+Epoch 940 — Train RMSE: 7.6300 — Val RMSE: 7.6300
+Epoch 950 — Train RMSE: 7.6279 — Val RMSE: 7.6401
+Epoch 960 — Train RMSE: 7.6279 — Val RMSE: 7.6278
+Epoch 970 — Train RMSE: 7.6300 — Val RMSE: 7.6300
+Epoch 980 — Train RMSE: 7.6279 — Val RMSE: 7.6401
+Epoch 990 — Train RMSE: 7.6279 — Val RMSE: 7.6278
+Epoch 1000 — Train RMSE: 7.6300 — Val RMSE: 7.6300
+tau: 5.93, delta: 0.10, c_cong: 12.54, c_free: -49.32, v_thr: 43.35, v_delta: 8.36
+
+Best Validation RMSE: 7.6277
+Best model saved at ../model/20260529_180625/best_model_lane2.pt
+Calibration time for lane 2: 40.59 seconds
+Finished calibrating lane 2.
+Calibrating lane 3...
+kernel_time_window: 14400.0
+kernel_space_window: 4.0
+
+--- Computational Performance Benchmark ---
+Total Parameters: 6
+FLOPs (est): 6.77e+10
+MACs (est): 3.38e+10
+Avg Inference Time: 11.36 ms
+Throughput: 88.01 inferences/sec (batch size 1)
+Peak CUDA Memory: 1431.42 MB
+-------------------------------------------
+
+Epoch   1 — Train RMSE: 8.0690 — Val RMSE: 8.0780
+tau: 14.90, delta: 0.05, c_cong: 9.40, c_free: -43.60, v_thr: 37.40, v_delta: 12.30
+Epoch  10 — Train RMSE: 8.6084 — Val RMSE: 8.5599
+Epoch  20 — Train RMSE: 7.5669 — Val RMSE: 7.4859
+Epoch  30 — Train RMSE: 7.5246 — Val RMSE: 7.5540
+Epoch  40 — Train RMSE: 7.6071 — Val RMSE: 7.5607
+Epoch  50 — Train RMSE: 7.2397 — Val RMSE: 7.2102
+Epoch  60 — Train RMSE: 7.2056 — Val RMSE: 7.2305
+Epoch  70 — Train RMSE: 7.1159 — Val RMSE: 7.0950
+Epoch  80 — Train RMSE: 7.0712 — Val RMSE: 7.0687
+Epoch  90 — Train RMSE: 7.0533 — Val RMSE: 7.0503
+Epoch 100 — Train RMSE: 7.0287 — Val RMSE: 7.0270
+tau: 6.42, delta: 0.09, c_cong: 13.24, c_free: -49.24, v_thr: 41.29, v_delta: 7.97
+Epoch 110 — Train RMSE: 7.0181 — Val RMSE: 7.0179
+Epoch 120 — Train RMSE: 7.0185 — Val RMSE: 7.0186
+Epoch 130 — Train RMSE: 7.0173 — Val RMSE: 7.0172
+Epoch 140 — Train RMSE: 7.0172 — Val RMSE: 7.0172
+Epoch 150 — Train RMSE: 7.0171 — Val RMSE: 7.0170
+Epoch 160 — Train RMSE: 7.0170 — Val RMSE: 7.0170
+Epoch 170 — Train RMSE: 7.0169 — Val RMSE: 7.0169
+Epoch 180 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 190 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 200 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+tau: 5.76, delta: 0.09, c_cong: 13.43, c_free: -48.89, v_thr: 41.29, v_delta: 8.84
+Epoch 210 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 220 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 230 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 240 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 250 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 260 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 270 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 280 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 290 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 300 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+tau: 5.76, delta: 0.09, c_cong: 13.43, c_free: -48.85, v_thr: 41.29, v_delta: 8.84
+Epoch 310 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 320 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 330 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 340 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 350 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 360 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 370 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 380 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 390 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 400 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+tau: 5.76, delta: 0.09, c_cong: 13.42, c_free: -48.85, v_thr: 41.29, v_delta: 8.85
+Epoch 410 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 420 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 430 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 440 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 450 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 460 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 470 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 480 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 490 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 500 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+tau: 5.76, delta: 0.09, c_cong: 13.42, c_free: -48.89, v_thr: 41.29, v_delta: 8.87
+Epoch 510 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 520 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 530 — Train RMSE: 7.0168 — Val RMSE: 7.0169
+Epoch 540 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+Epoch 550 — Train RMSE: 7.0342 — Val RMSE: 7.0168
+Epoch 560 — Train RMSE: 7.0336 — Val RMSE: 7.0338
+Epoch 570 — Train RMSE: 7.0169 — Val RMSE: 7.0647
+Epoch 580 — Train RMSE: 7.0339 — Val RMSE: 7.0339
+Epoch 590 — Train RMSE: 7.0639 — Val RMSE: 7.0168
+Epoch 600 — Train RMSE: 7.0337 — Val RMSE: 7.0168
+tau: 5.72, delta: 0.09, c_cong: 13.42, c_free: -48.87, v_thr: 41.65, v_delta: 8.95
+Epoch 610 — Train RMSE: 7.0169 — Val RMSE: 7.0335
+Epoch 620 — Train RMSE: 7.0168 — Val RMSE: 7.0622
+Epoch 630 — Train RMSE: 7.0752 — Val RMSE: 7.0754
+Epoch 640 — Train RMSE: 7.0348 — Val RMSE: 7.0601
+Epoch 650 — Train RMSE: 7.0346 — Val RMSE: 7.0346
+Epoch 660 — Train RMSE: 7.0635 — Val RMSE: 7.0168
+Epoch 670 — Train RMSE: 7.0329 — Val RMSE: 7.0327
+Epoch 680 — Train RMSE: 7.0628 — Val RMSE: 7.0340
+Epoch 690 — Train RMSE: 7.4578 — Val RMSE: 7.5126
+Epoch 700 — Train RMSE: 7.1025 — Val RMSE: 7.1036
+tau: 6.83, delta: 0.11, c_cong: 13.45, c_free: -49.39, v_thr: 42.15, v_delta: 8.60
+Epoch 710 — Train RMSE: 7.1004 — Val RMSE: 7.0593
+Epoch 720 — Train RMSE: 7.2331 — Val RMSE: 7.1381
+Epoch 730 — Train RMSE: 8.7953 — Val RMSE: 8.8298
+Epoch 740 — Train RMSE: 8.0002 — Val RMSE: 7.7962
+Epoch 750 — Train RMSE: 9.4791 — Val RMSE: 9.8107
+Epoch 760 — Train RMSE: 10.9138 — Val RMSE: 10.9207
+Epoch 770 — Train RMSE: 11.1078 — Val RMSE: 11.1044
+Epoch 780 — Train RMSE: 11.0823 — Val RMSE: 11.0679
+Epoch 790 — Train RMSE: 10.9508 — Val RMSE: 10.9296
+Epoch 800 — Train RMSE: 10.7911 — Val RMSE: 10.7776
+tau: 9.50, delta: 1.32, c_cong: 12.45, c_free: -48.88, v_thr: 49.02, v_delta: 6.30
+Epoch 810 — Train RMSE: 10.6247 — Val RMSE: 10.6063
+Epoch 820 — Train RMSE: 10.4413 — Val RMSE: 10.4225
+Epoch 830 — Train RMSE: 10.2421 — Val RMSE: 10.2211
+Epoch 840 — Train RMSE: 9.9999 — Val RMSE: 9.9529
+Epoch 850 — Train RMSE: 9.4821 — Val RMSE: 9.4240
+Epoch 860 — Train RMSE: 8.8357 — Val RMSE: 8.7622
+Epoch 870 — Train RMSE: 7.8395 — Val RMSE: 7.7057
+Epoch 880 — Train RMSE: 7.2332 — Val RMSE: 7.3003
+Epoch 890 — Train RMSE: 7.4084 — Val RMSE: 7.3687
+Epoch 900 — Train RMSE: 7.0960 — Val RMSE: 7.1196
+tau: 7.82, delta: 0.10, c_cong: 12.53, c_free: -49.90, v_thr: 47.51, v_delta: 8.93
+Epoch 910 — Train RMSE: 7.1835 — Val RMSE: 7.0688
+Epoch 920 — Train RMSE: 7.0533 — Val RMSE: 7.0526
+Epoch 930 — Train RMSE: 7.0568 — Val RMSE: 7.0197
+Epoch 940 — Train RMSE: 7.0203 — Val RMSE: 7.0203
+Epoch 950 — Train RMSE: 7.0308 — Val RMSE: 7.0309
+Epoch 960 — Train RMSE: 7.0182 — Val RMSE: 7.0180
+Epoch 970 — Train RMSE: 7.0172 — Val RMSE: 7.0172
+Epoch 980 — Train RMSE: 7.0171 — Val RMSE: 7.0170
+Epoch 990 — Train RMSE: 7.0169 — Val RMSE: 7.0169
+Epoch 1000 — Train RMSE: 7.0168 — Val RMSE: 7.0168
+tau: 5.77, delta: 0.09, c_cong: 13.58, c_free: -48.87, v_thr: 42.43, v_delta: 9.59
+
+Best Validation RMSE: 7.0167
+Best model saved at ../model/20260529_180625/best_model_lane3.pt
+Calibration time for lane 3: 40.62 seconds
+Finished calibrating lane 3.
+Calibrating lane 4...
+kernel_time_window: 14400.0
+kernel_space_window: 4.0
+
+--- Computational Performance Benchmark ---
+Total Parameters: 6
+FLOPs (est): 6.77e+10
+MACs (est): 3.38e+10
+Avg Inference Time: 11.35 ms
+Throughput: 88.07 inferences/sec (batch size 1)
+Peak CUDA Memory: 1431.42 MB
+-------------------------------------------
+
+Epoch   1 — Train RMSE: 7.8263 — Val RMSE: 8.3041
+tau: 14.90, delta: 0.05, c_cong: 9.40, c_free: -43.60, v_thr: 37.40, v_delta: 12.30
+Epoch  10 — Train RMSE: 8.5730 — Val RMSE: 8.5343
+Epoch  20 — Train RMSE: 7.5652 — Val RMSE: 7.4658
+Epoch  30 — Train RMSE: 7.3270 — Val RMSE: 7.3485
+Epoch  40 — Train RMSE: 7.3875 — Val RMSE: 7.3513
+Epoch  50 — Train RMSE: 7.2641 — Val RMSE: 7.2512
+Epoch  60 — Train RMSE: 7.2594 — Val RMSE: 7.2588
+Epoch  70 — Train RMSE: 7.2401 — Val RMSE: 7.2397
+Epoch  80 — Train RMSE: 7.2377 — Val RMSE: 7.2376
+Epoch  90 — Train RMSE: 7.2367 — Val RMSE: 7.2366
+Epoch 100 — Train RMSE: 7.2361 — Val RMSE: 7.2361
+tau: 10.55, delta: 0.09, c_cong: 12.85, c_free: -50.20, v_thr: 38.69, v_delta: 9.38
+Epoch 110 — Train RMSE: 7.2358 — Val RMSE: 7.2358
+Epoch 120 — Train RMSE: 7.2356 — Val RMSE: 7.2356
+Epoch 130 — Train RMSE: 7.2355 — Val RMSE: 7.2355
+Epoch 140 — Train RMSE: 7.2378 — Val RMSE: 7.2378
+Epoch 150 — Train RMSE: 7.2376 — Val RMSE: 7.2375
+Epoch 160 — Train RMSE: 7.2353 — Val RMSE: 7.2353
+Epoch 170 — Train RMSE: 7.2352 — Val RMSE: 7.2352
+Epoch 180 — Train RMSE: 7.2374 — Val RMSE: 7.2374
+Epoch 190 — Train RMSE: 7.2351 — Val RMSE: 7.2351
+Epoch 200 — Train RMSE: 7.2351 — Val RMSE: 7.2351
+tau: 10.41, delta: 0.09, c_cong: 12.85, c_free: -54.55, v_thr: 37.67, v_delta: 9.12
+Epoch 210 — Train RMSE: 7.2372 — Val RMSE: 7.2372
+Epoch 220 — Train RMSE: 7.2350 — Val RMSE: 7.2350
+Epoch 230 — Train RMSE: 7.2350 — Val RMSE: 7.2350
+Epoch 240 — Train RMSE: 7.2371 — Val RMSE: 7.2371
+Epoch 250 — Train RMSE: 7.2350 — Val RMSE: 7.2350
+Epoch 260 — Train RMSE: 7.2370 — Val RMSE: 7.2370
+Epoch 270 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 280 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 290 — Train RMSE: 7.2369 — Val RMSE: 7.2369
+Epoch 300 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+tau: 10.43, delta: 0.09, c_cong: 12.85, c_free: -57.31, v_thr: 37.32, v_delta: 8.78
+Epoch 310 — Train RMSE: 7.2368 — Val RMSE: 7.2368
+Epoch 320 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 330 — Train RMSE: 7.2368 — Val RMSE: 7.2368
+Epoch 340 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 350 — Train RMSE: 7.2368 — Val RMSE: 7.2368
+Epoch 360 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 370 — Train RMSE: 7.2368 — Val RMSE: 7.2368
+Epoch 380 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 390 — Train RMSE: 7.2368 — Val RMSE: 7.2368
+Epoch 400 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+tau: 10.43, delta: 0.09, c_cong: 12.85, c_free: -58.80, v_thr: 37.20, v_delta: 8.69
+Epoch 410 — Train RMSE: 7.2368 — Val RMSE: 7.2367
+Epoch 420 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 430 — Train RMSE: 7.2367 — Val RMSE: 7.2367
+Epoch 440 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 450 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 460 — Train RMSE: 7.2367 — Val RMSE: 7.2367
+Epoch 470 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 480 — Train RMSE: 7.2367 — Val RMSE: 7.2367
+Epoch 490 — Train RMSE: 7.2349 — Val RMSE: 7.2367
+Epoch 500 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+tau: 10.44, delta: 0.09, c_cong: 12.85, c_free: -59.62, v_thr: 37.18, v_delta: 8.68
+Epoch 510 — Train RMSE: 7.2367 — Val RMSE: 7.2367
+Epoch 520 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 530 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 540 — Train RMSE: 7.2367 — Val RMSE: 7.2367
+Epoch 550 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 560 — Train RMSE: 7.2367 — Val RMSE: 7.2367
+Epoch 570 — Train RMSE: 7.2349 — Val RMSE: 7.2367
+Epoch 580 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 590 — Train RMSE: 7.2367 — Val RMSE: 7.2349
+Epoch 600 — Train RMSE: 7.2367 — Val RMSE: 7.2367
+tau: 10.47, delta: 0.10, c_cong: 12.85, c_free: -60.00, v_thr: 37.17, v_delta: 8.69
+Epoch 610 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 620 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 630 — Train RMSE: 7.2367 — Val RMSE: 7.2367
+Epoch 640 — Train RMSE: 7.2349 — Val RMSE: 7.2367
+Epoch 650 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 660 — Train RMSE: 7.2367 — Val RMSE: 7.2349
+Epoch 670 — Train RMSE: 7.2367 — Val RMSE: 7.2367
+Epoch 680 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 690 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 700 — Train RMSE: 7.2367 — Val RMSE: 7.2367
+tau: 10.47, delta: 0.10, c_cong: 12.84, c_free: -60.00, v_thr: 37.16, v_delta: 8.69
+Epoch 710 — Train RMSE: 7.2367 — Val RMSE: 7.2367
+Epoch 720 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 730 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 740 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 750 — Train RMSE: 7.2367 — Val RMSE: 7.2367
+Epoch 760 — Train RMSE: 7.2367 — Val RMSE: 7.2367
+Epoch 770 — Train RMSE: 7.2348 — Val RMSE: 7.2367
+Epoch 780 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 790 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 800 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+tau: 10.45, delta: 0.09, c_cong: 12.84, c_free: -60.00, v_thr: 37.16, v_delta: 8.68
+Epoch 810 — Train RMSE: 7.2367 — Val RMSE: 7.2367
+Epoch 820 — Train RMSE: 7.2367 — Val RMSE: 7.2367
+Epoch 830 — Train RMSE: 7.2367 — Val RMSE: 7.2367
+Epoch 840 — Train RMSE: 7.2349 — Val RMSE: 7.2348
+Epoch 850 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 860 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 870 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 880 — Train RMSE: 7.2367 — Val RMSE: 7.2349
+Epoch 890 — Train RMSE: 7.2366 — Val RMSE: 7.2366
+Epoch 900 — Train RMSE: 7.2367 — Val RMSE: 7.2367
+tau: 10.48, delta: 0.10, c_cong: 12.84, c_free: -60.00, v_thr: 37.15, v_delta: 8.69
+Epoch 910 — Train RMSE: 7.2367 — Val RMSE: 7.2367
+Epoch 920 — Train RMSE: 7.2349 — Val RMSE: 7.2366
+Epoch 930 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 940 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 950 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 960 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 970 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 980 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 990 — Train RMSE: 7.2349 — Val RMSE: 7.2349
+Epoch 1000 — Train RMSE: 7.2367 — Val RMSE: 7.2349
+tau: 10.45, delta: 0.09, c_cong: 12.84, c_free: -60.00, v_thr: 37.16, v_delta: 8.68
+
+Best Validation RMSE: 7.2348
+Best model saved at ../model/20260529_180625/best_model_lane4.pt
+Calibration time for lane 4: 40.63 seconds
+Finished calibrating lane 4.
+All lanes calibrated. Logs saved to ../logs/calibration/20260529_180625/calibration_log.txt

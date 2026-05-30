@@ -1,0 +1,18 @@
+
+[1;34m[18:03:14][0m ASMx pipeline RUNID=20260529_180314   stage=evaluate   uv=uv 0.10.11
+
+[1;34m[18:03:14][0m Master log: /home/junyi/ASMx/logs/end-to-end/20260529_180314/00_pipeline.log
+
+[1;34m[18:03:14][0m ▶ START 00_uv_sync — logging to logs/end-to-end/20260529_180314/00_uv_sync.log
+Resolved 139 packages in 0.74ms
+Checked 134 packages in 1ms
+
+[1;34m[18:03:14][0m ✔ DONE  00_uv_sync (0s)
+
+[1;34m[18:03:14][0m ▶ START 05_evaluate_iou — logging to logs/end-to-end/20260529_180314/05_evaluate_iou.log
+[NbConvertApp] Converting notebook IOU.ipynb to notebook
+[NbConvertApp] Writing 254710 bytes to IOU.executed.ipynb
+
+[1;34m[18:03:24][0m ✔ DONE  05_evaluate_iou (10s)
+
+[1;34m[18:03:24][0m Pipeline stage 'evaluate' completed. Logs in logs/end-to-end/20260529_180314/
