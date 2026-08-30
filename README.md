@@ -152,6 +152,23 @@ All data required for reproducing the experiments—including raw records from t
 
 The contents of every file under `data/`, the meaning of each column, units, and the pipeline that produces them are documented in [data/README.md](data/README.md). It covers the three pipeline stages — `raw_record/`, `raw_data/`, `processed_data/` — for both the RDS detector data and the motion-based ground truth, along with the demonstration assets at the root of `data/`. We welcome feedback from users to help improve and iterate on the data standard moving forward.
 
+## 📚 Citation
+
+If you use this repository, please cite: https://link.springer.com/article/10.1186/s12544-026-00818-0
+
+```bibtex
+@article{ji2026calibrating,
+  title={Calibrating adaptive smoothing methods for freeway traffic reconstruction},
+  author={Ji, Junyi and Gloudemans, Derek and Zach{\'a}r, Gergely and Nice, Matthew W and Barbour, William and Work, Daniel B},
+  journal={European Transport Research Review},
+  volume={18},
+  number={1},
+  pages={56},
+  year={2026},
+  publisher={Springer}
+}
+```
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
