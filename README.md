@@ -156,6 +156,19 @@ The contents of every file under `data/`, the meaning of each column, units, and
 
 If you use this repository, please cite: https://link.springer.com/article/10.1186/s12544-026-00818-0
 
+```bibtex
+@article{ji2026calibrating,
+  title={Calibrating adaptive smoothing methods for freeway traffic reconstruction},
+  author={Ji, Junyi and Gloudemans, Derek and Zach{\'a}r, Gergely and Nice, Matthew W and Barbour, William and Work, Daniel B},
+  journal={European Transport Research Review},
+  volume={18},
+  number={1},
+  pages={56},
+  year={2026},
+  publisher={Springer}
+}
+```
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
